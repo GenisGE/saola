@@ -1,0 +1,112 @@
+import os
+import fnmatch
+
+# Sorting options 
+sort_threads = 8
+sort_memory = 4  # GB per thread
+
+
+samples = []
+for filename in os.listdir("input"):
+    if filename.endswith(".bam"):
+        samples.append(filename.rsplit(".", 1)[0])
+
+
+rule all:
+    input:
+        expand("output/{sample}.bam", sample=samples),
+        expand("output/{sample}.idxstats.txt", sample=samples),
+        expand("output/{sample}.stats.txt", sample=samples)
+
+
+rule sort_by_qname:
+    input:
+        "input/{sample}.bam"
+    output:
+        temporary("scratch/{sample}.name_sorted.bam")
+    threads: sort_threads
+    resources:
+        mem_mb=int(sort_threads * sort_memory * 1.10)
+    shell:
+        """
+        samtools sort {input} \
+            -n \
+            -T scratch/sort.$(uuidgen) \
+            --threads {threads} \
+            -m {sort_memory}G \
+            --output-fmt BAM \
+            -o {output}
+        """
+
+
+# Jira: PROJ-4
+rule filter_bam:
+    input:
+        "scratch/{sample}.name_sorted.bam"
+    output:
+        bam=temporary("scratch/{sample}.filtered.bam"),
+        junk="output/{sample}.junk.bam",
+        json="output/{sample}.json"
+    shell:
+        """
+        python3 ./scripts/finalize_bam.py \
+            {input} \
+            --allow-improper-pairs \
+            --strict-mate-alignments \
+            --min-insert-size 190 \
+            --max-insert-size 500 \
+            --min-mapped-bases 35 \
+            --min-mapped-fraction 0.7 \
+            --out-passed {output.bam} \
+            --out-failed {output.junk} \
+            --out-json {output.json} \
+            --json-override-input "input/{wildcards.sample}.bam" \
+            --json-override-passed "output/{wildcards.sample}.bam"
+        """
+
+
+rule sort_by_coord:
+    input:
+        "scratch/{sample}.filtered.bam"
+    output:
+        "output/{sample}.bam"
+    threads: sort_threads
+    resources:
+        mem_mb=int(sort_threads * sort_memory * 1.05)
+    shell:
+        """
+        samtools sort {input} \
+            -T scratch/sort.$(uuidgen) \
+            --threads {threads} \
+            -m {sort_memory}G \
+            --output-fmt BAM \
+            -o {output}
+        """
+
+
+rule samtools_stats:
+    input:
+        "{filename}.bam"
+    output:
+        "{filename}.stats.txt"
+    shell:
+        "samtools stats {input} > {output}"
+
+
+rule samtools_idx:
+    input:
+        "{filename}.bam"
+    output:
+        "{filename}.bam.bai"
+    shell:
+        "samtools index {input} > {output}"
+
+
+rule samtools_idxstats:
+    input:
+        bam="{filename}.bam",
+        bai="{filename}.bam.bai"
+    output:
+        "{filename}.idxstats.txt"
+    shell:
+        "samtools idxstats {input.bam} > {output}"

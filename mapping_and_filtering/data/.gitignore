@@ -1,0 +1,15 @@
+# bwa index
+*.amb
+*.ann
+*.bwt
+*.pac
+*.sa
+
+# samtools faidx
+*.fai
+
+# paleomix validate_fasta
+*.validated
+
+# picard CreateSequenceDictionary
+*.dict
