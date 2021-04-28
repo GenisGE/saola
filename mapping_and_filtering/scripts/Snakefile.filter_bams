@@ -23,7 +23,7 @@ rule sort_by_qname:
     input:
         "input/{sample}.bam"
     output:
-        temporary("scratch/{sample}.name_sorted.bam")
+        "scratch/{sample}.name_sorted.bam"
     threads: sort_threads
     resources:
         mem_mb=int(sort_threads * sort_memory * 1.10)
@@ -47,14 +47,16 @@ rule filter_bam:
         bam=temporary("scratch/{sample}.filtered.bam"),
         junk="output/{sample}.junk.bam",
         json="output/{sample}.json"
+    threads: 4
     shell:
         """
         python3 ./scripts/finalize_bam.py \
             {input} \
-            --allow-improper-pairs \
+            --threads {threads} \
             --strict-mate-alignments \
-            --min-insert-size 190 \
-            --max-insert-size 500 \
+            --allow-improper-pairs \
+            --min-paired-insert-size 190 \
+            --max-paired-insert-size 500 \
             --min-mapped-bases 35 \
             --min-mapped-fraction 0.7 \
             --out-passed {output.bam} \

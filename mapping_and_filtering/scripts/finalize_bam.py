@@ -142,12 +142,17 @@ class FilteredRecord:
         if insert_size is not None and passes_filters:
             # Note that insert sizes get counted twice for paired reads here
             json_insert_size = min(args.json_insert_size_cap, insert_size)
-            if args.min_insert_size <= insert_size <= args.max_insert_size:
-                statistics["insert_sizes"]["passed"][json_insert_size] += 1
-            else:
+
+            if flag & BAM_SEGMENTED and not (
+                args.min_paired_insert_size
+                <= insert_size
+                <= args.max_paired_insert_size
+            ):
                 statistics["insert_sizes"]["failed"][json_insert_size] += 1
                 statistics["filters"]["bad_insert_size"] += 1
                 passes_filters = False
+            else:
+                statistics["insert_sizes"]["passed"][json_insert_size] += 1
 
         self.record = record
         self.statistics = statistics
@@ -337,11 +342,12 @@ def write_json(args, in_bam, statistics):
                 "settings": {
                     "--allow-improper-pairs": args.allow_improper_pairs,
                     "--allow-orphan-mates": args.allow_orphan_mates,
-                    "--max-insert-size": args.max_insert_size,
-                    "--min-insert-size": args.min_insert_size,
+                    "--min-mapped-bases": args.min_mapped_bases,
                     "--min-mapped-fraction": args.min_mapped_fraction,
                     "--min-mapping-quality": args.min_mapping_quality,
-                    "--min-mapped-bases": args.min_mapped_bases,
+                    "--min-paired-insert-size": args.min_paired_insert_size,
+                    "--max-paired-insert-size": args.max_paired_insert_size,
+                    "--strict-mate-alignments": args.strict_mate_alignments,
                 },
                 "statistics": statistics,
                 "genome": {
@@ -363,9 +369,20 @@ def initialize_statistics(args):
 
     # Counts of flags per read group
     statistics = {}
-    for group in ("paired", "merged", "merged_truncated", "single"):
+    for group in ("paired", "merged", "single"):
         statistics[group] = {
-            "totals": _passed_and_failed(),
+            "totals": {
+                "passed": {
+                    "reads": 0,
+                    "bases": 0,
+                    "coverage": 0.0,
+                },
+                "failed": {
+                    "reads": 0,
+                    "bases": 0,
+                    "coverage": 0.0,
+                },
+            },
             "filters": dict.fromkeys(args.named_pe_filters, 0),
             "query_lengths": _passed_and_failed(),
             "insert_sizes": _passed_and_failed(),
@@ -375,7 +392,9 @@ def initialize_statistics(args):
             "flags": defaultdict(int),
         }
 
-        if args.min_insert_size > 0 or args.max_insert_size < float("inf"):
+        if args.min_paired_insert_size > 0 or args.max_paired_insert_size < float(
+            "inf"
+        ):
             statistics[group]["filters"]["bad_insert_size"] = 0
 
         if args.min_mapped_bases > 0:
@@ -421,8 +440,8 @@ def configure_flag_filters(args):
 
 def is_queryname_ordering_required(args):
     return (
-        args.min_insert_size > 0
-        or args.max_insert_size < float("inf")
+        args.min_paired_insert_size > 0
+        or args.max_paired_insert_size < float("inf")
         or args.min_mapped_bases > 0
         or args.min_mapped_fraction > 0
         or args.min_mapping_quality > 0
@@ -470,16 +489,16 @@ def parse_args(argv):
 
     group = parser.add_argument_group("Filters")
     group.add_argument(
-        "--min-insert-size",
+        "--min-paired-insert-size",
         type=int,
         default=0,
-        help="Minimum insert size for paired/merged records",
+        help="Minimum insert size for paired reads",
     )
     group.add_argument(
-        "--max-insert-size",
+        "--max-paired-insert-size",
         type=int,
         default=float("inf"),
-        help="Maximum insert size for paired/merged reads",
+        help="Maximum insert size for paired reads",
     )
     group.add_argument(
         "--min-mapped-bases",
