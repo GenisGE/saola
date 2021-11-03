@@ -22,10 +22,10 @@ Options:
      --mm: 3
      --minlength: 25
      # Extra features enabled by default; change 'yes' to 'no' to disable
-     --collapse: yes
-     --trimns: yes
-     --trimqualities: yes
-     --collapse-conservatively: yes
+     --collapse:
+     --trimns:
+     --trimqualities:
+     --collapse-conservatively:
 
   # Settings for aligners supported by the pipeline
   Aligners:
@@ -110,14 +110,14 @@ Options:
 
 # Map of prefixes by name, each having a Path, which specifies the location of the
 # BWA/Bowtie2 index, and optional regions for which additional statistics are produced.
-Prefixes:
+Genomes:
   bosTau9:
     Path: data/bosTau9.fasta
   saolaRefN:
     Path: data/saolaRefN.fasta
 
 
-'9176':
+StandardAdapters:
   '9176':
     '9176A':
       'CL100037282_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037282_L01_9176A_m0_{Pair}.fq.gz'
@@ -125,7 +125,6 @@ Prefixes:
       'CL100037283_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L01_9176A_m0_{Pair}.fq.gz'
       'CL100037283_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L02_9176A_m0_{Pair}.fq.gz'
 
-'9253':
   '9253':
     '9253A':
       'CL100037282_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037282_L01_9253A_m0_{Pair}.fq.gz'
@@ -133,7 +132,6 @@ Prefixes:
       'CL100037283_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L01_9253A_m0_{Pair}.fq.gz'
       'CL100037283_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L02_9253A_m0_{Pair}.fq.gz'
 
-'9254':
   '9254':
     '9254A':
       'CL100037282_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037282_L01_9254A_m0_{Pair}.fq.gz'
@@ -141,7 +139,6 @@ Prefixes:
       'CL100037283_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L01_9254A_m0_{Pair}.fq.gz'
       'CL100037283_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L02_9254A_m0_{Pair}.fq.gz'
 
-'9255':
   '9255':
     '9255A':
       'CL100037282_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037282_L01_9255A_m0_{Pair}.fq.gz'
@@ -156,7 +153,6 @@ Prefixes:
       'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9255A_m0_{Pair}.fq.gz'
       'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9255A_m0_{Pair}.fq.gz'
 
-'9257':
   '9257':
     '9257A':
       'CL100037282_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037282_L01_9257A_m0_{Pair}.fq.gz'
@@ -164,7 +160,6 @@ Prefixes:
       'CL100037283_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L01_9257A_m0_{Pair}.fq.gz'
       'CL100037283_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L02_9257A_m0_{Pair}.fq.gz'
 
-'9258':
   '9258':
     '9258A':
       'CL100037282_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037282_L01_9258A_m0_{Pair}.fq.gz'
@@ -172,7 +167,6 @@ Prefixes:
       'CL100037283_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L01_9258A_m0_{Pair}.fq.gz'
       'CL100037283_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L02_9258A_m0_{Pair}.fq.gz'
 
-'9259':
   '9259':
     '9259A':
       'CL100037282_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037282_L01_9259A_m0_{Pair}.fq.gz'
@@ -180,7 +174,6 @@ Prefixes:
       'CL100037283_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L01_9259A_m0_{Pair}.fq.gz'
       'CL100037283_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100037283_L02_9259A_m0_{Pair}.fq.gz'
 
-'9260':
   '9260':
     '9260A':
       'CL100037282_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100037282_L01_9260A_m0_{Pair}.fq.gz'
@@ -191,17 +184,6 @@ Prefixes:
       'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9260A_m0_{Pair}.fq.gz'
       'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9260A_m0_{Pair}.fq.gz'
 
-'9262':
-  '9262':
-    '9262A':
-      'CL100035942_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L01_9262A_m0_{Pair}.fq.gz'
-      'CL100035947_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L01_9262A_m0_{Pair}.fq.gz'
-      'CL100035947_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L02_9262A_m0_{Pair}.fq.gz'
-      'CL100066416_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L02_9262A_m0_{Pair}.fq.gz'
-      'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9262A_m0_{Pair}.fq.gz'
-      'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9262A_m0_{Pair}.fq.gz'
-
-'9264':
   '9264':
     '9264A':
       'CL100039854_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100039854_L01_9264A_m0_{Pair}.fq.gz'
@@ -209,24 +191,6 @@ Prefixes:
       'CL100040421_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100040421_L01_9264A_m0_{Pair}.fq.gz'
       'CL100040421_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100040421_L02_9264A_m0_{Pair}.fq.gz'
 
-'9267':
-  '9267':
-    '9267A':
-      'CL100035942_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L02_9267A_m0_{Pair}.fq.gz'
-      'CL100035944_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L01_9267A_m0_{Pair}.fq.gz'
-      'CL100035944_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L02_9267A_m0_{Pair}.fq.gz'
-
-'9268':
-  '9268':
-    '9268A':
-      'CL100035942_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L01_9268A_m0_{Pair}.fq.gz'
-      'CL100035947_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L01_9268A_m0_{Pair}.fq.gz'
-      'CL100035947_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L02_9268A_m0_{Pair}.fq.gz'
-      'CL100066416_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L02_9268A_m0_{Pair}.fq.gz'
-      'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9268A_m0_{Pair}.fq.gz'
-      'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9268A_m0_{Pair}.fq.gz'
-
-'9270':
   '9270':
     '9270A':
       'CL100039854_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100039854_L01_9270A_m0_{Pair}.fq.gz'
@@ -234,39 +198,16 @@ Prefixes:
       'CL100040421_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100040421_L01_9270A_m0_{Pair}.fq.gz'
       'CL100040421_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100040421_L02_9270A_m0_{Pair}.fq.gz'
 
-'9272':
-  '9272':
-    '9272A':
-      'CL100035942_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L01_9272A_m0_{Pair}.fq.gz'
-      'CL100035947_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L01_9272A_m0_{Pair}.fq.gz'
-      'CL100035947_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L02_9272A_m0_{Pair}.fq.gz'
-      'CL100066416_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L02_9272A_m0_{Pair}.fq.gz'
-      'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9272A_m0_{Pair}.fq.gz'
-      'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9272A_m0_{Pair}.fq.gz'
-
-'9275':
-  '9275':
-    '9275A':
-      'CL100035942_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L01_9275A_m0_{Pair}.fq.gz'
-      'CL100035947_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L01_9275A_m0_{Pair}.fq.gz'
-      'CL100035947_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L02_9275A_m0_{Pair}.fq.gz'
-      'CL100066416_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L02_9275A_m0_{Pair}.fq.gz'
-      'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9275A_m0_{Pair}.fq.gz'
-      'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9275A_m0_{Pair}.fq.gz'
-
-'9277':
   '9277':
     '9277N':
       'CL100040898_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L01_9277N_m0_{Pair}.fq.gz'
       'CL100040898_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L02_9277N_m0_{Pair}.fq.gz'
 
-'9278':
   '9278':
     '9278N':
       'CL100040898_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L01_9278N_m0_{Pair}.fq.gz'
       'CL100040898_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L02_9278N_m0_{Pair}.fq.gz'
 
-'9279':
   '9279':
     '9279A':
       'CL100039854_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100039854_L01_9279A_m0_{Pair}.fq.gz'
@@ -277,24 +218,6 @@ Prefixes:
       'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9279A_m0_{Pair}.fq.gz'
       'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9279A_m0_{Pair}.fq.gz'
 
-'9280':
-  '9280':
-    '9280A':
-      'CL100035942_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L02_9280A_m0_{Pair}.fq.gz'
-      'CL100035944_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L01_9280A_m0_{Pair}.fq.gz'
-      'CL100035944_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L02_9280A_m0_{Pair}.fq.gz'
-    '9280N':
-      'CL100040898_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L01_9280N_m0_{Pair}.fq.gz'
-      'CL100040898_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L02_9280N_m0_{Pair}.fq.gz'
-
-'9282':
-  '9282':
-    '9282A':
-      'CL100035942_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L02_9282A_m0_{Pair}.fq.gz'
-      'CL100035944_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L01_9282A_m0_{Pair}.fq.gz'
-      'CL100035944_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L02_9282A_m0_{Pair}.fq.gz'
-
-'P10':
   'P10':
     'P10A':
       'CL100035804_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035804_L01_P10A_m0_{Pair}.fq.gz'
@@ -307,7 +230,6 @@ Prefixes:
       'CL100066415_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066415_L02_P10A_m0_{Pair}.fq.gz'
       'CL100066416_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L01_P10A_m0_{Pair}.fq.gz'
 
-'P11':
   'P11':
     'P11A':
       'CL100035804_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035804_L01_P11A_m0_{Pair}.fq.gz'
@@ -322,7 +244,6 @@ Prefixes:
       'CL100066415_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066415_L02_P11A_m0_{Pair}.fq.gz'
       'CL100066416_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L01_P11A_m0_{Pair}.fq.gz'
 
-'P12':
   'P12':
     'P12A':
       'CL100035805_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035805_L01_P12A_m0_{Pair}.fq.gz'
@@ -335,7 +256,6 @@ Prefixes:
       'CL100066415_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066415_L02_P12A_m0_{Pair}.fq.gz'
       'CL100066416_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L01_P12A_m0_{Pair}.fq.gz'
 
-'P13':
   'P13':
     'P13A':
       'CL100035805_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035805_L01_P13A_m0_{Pair}.fq.gz'
@@ -344,7 +264,6 @@ Prefixes:
       'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_P13A_m0_{Pair}.fq.gz'
       'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_P13A_m0_{Pair}.fq.gz'
 
-'P14':
   'P14':
     'P14A':
       'CL100035805_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035805_L01_P14A_m0_{Pair}.fq.gz'
@@ -357,7 +276,6 @@ Prefixes:
       'CL100066415_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066415_L02_P14A_m0_{Pair}.fq.gz'
       'CL100066416_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L01_P14A_m0_{Pair}.fq.gz'
 
-'P2':
   'P2':
     'P2A':
       'CL100035804_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035804_L01_P2A_m0_{Pair}.fq.gz'
@@ -368,7 +286,6 @@ Prefixes:
       'CL100066415_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066415_L02_P2A_m0_{Pair}.fq.gz'
       'CL100066416_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L01_P2A_m0_{Pair}.fq.gz'
 
-'P3':
   'P3':
     'P3A':
       '190912_I109_V300027032_L1': '/steveData/saola/rawData/rawData/20191008/CDK153B190903001/190912_I109_V300027032_L1_BGI-1/V300027032_L01_501_1.fq.gz'
@@ -390,7 +307,6 @@ Prefixes:
       'CL100040421_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100040421_L01_P3B_m0_{Pair}.fq.gz'
       'CL100040421_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100040421_L02_P3B_m0_{Pair}.fq.gz'
 
-'P4':
   'P4':
     'P4A':
       '190912_I109_V300027032_L1': '/steveData/saola/rawData/rawData/20191008/CDK153B190903001/190912_I109_V300027032_L1_BGI-2/V300027032_L01_502_1.fq.gz'
@@ -409,7 +325,6 @@ Prefixes:
       'CL100066416_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L01_P4A_m0_{Pair}.fq.gz'
       'CL100128966_L01': '/steveData/saola/rawData/rawData/20190628/CL100128966_L01_read_{Pair}.fq.gz'
 
-'P6':
   'P6':
     'P6A':
       'CL100035804_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035804_L01_P6A_m0_{Pair}.fq.gz'
@@ -422,7 +337,6 @@ Prefixes:
       'CL100066415_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066415_L02_P6A_m0_{Pair}.fq.gz'
       'CL100066416_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L01_P6A_m0_{Pair}.fq.gz'
 
-'P8':
   'P8':
     'P8A':
       'CL100035804_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035804_L01_P8A_m0_{Pair}.fq.gz'
@@ -435,7 +349,6 @@ Prefixes:
       'CL100066415_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066415_L02_P8A_m0_{Pair}.fq.gz'
       'CL100066416_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L01_P8A_m0_{Pair}.fq.gz'
 
-'P9':
   'P9':
     'P9A':
       '190912_I109_V300027032_L1': '/steveData/saola/rawData/rawData/20191008/CDK153B190903001/190912_I109_V300027032_L1_BGI-3/V300027032_L01_503_1.fq.gz'
@@ -451,3 +364,137 @@ Prefixes:
       'CL100040898_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L02_P9A_m0_{Pair}.fq.gz'
       'CL100128966_L02': '/steveData/saola/rawData/rawData/20190628/CL100128966_L02_read_{Pair}.fq.gz'
 
+
+# A number of lanes were found to have non-standard --adapter2 sequences
+NonstandardAdapters:
+  '9262':
+    '9262A':
+      'CL100035942_L01':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L01_9262A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035947_L01':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L01_9262A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035947_L02':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L02_9262A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100066416_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L02_9262A_m0_{Pair}.fq.gz'
+      'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9262A_m0_{Pair}.fq.gz'
+      'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9262A_m0_{Pair}.fq.gz'
+
+  '9267':
+    '9267A':
+      'CL100035942_L02':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L02_9267A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035944_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L01_9267A_m0_{Pair}.fq.gz'
+      'CL100035944_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L02_9267A_m0_{Pair}.fq.gz'
+
+  '9268':
+    '9268A':
+      'CL100035942_L01':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L01_9268A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035947_L01':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L01_9268A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035947_L02':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L02_9268A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100066416_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L02_9268A_m0_{Pair}.fq.gz'
+      'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9268A_m0_{Pair}.fq.gz'
+      'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9268A_m0_{Pair}.fq.gz'
+
+  '9272':
+    '9272A':
+      'CL100035942_L01':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L01_9272A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035947_L01':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L01_9272A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035947_L02':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L02_9272A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100066416_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L02_9272A_m0_{Pair}.fq.gz'
+      'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9272A_m0_{Pair}.fq.gz'
+      'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9272A_m0_{Pair}.fq.gz'
+
+  '9275':
+    '9275A':
+      'CL100035942_L01':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L01_9275A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035947_L01':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L01_9275A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035947_L02':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035947_L02_9275A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100066416_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066416_L02_9275A_m0_{Pair}.fq.gz'
+      'CL100066417_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L01_9275A_m0_{Pair}.fq.gz'
+      'CL100066417_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100066417_L02_9275A_m0_{Pair}.fq.gz'
+
+  '9280':
+    '9280A':
+      'CL100035942_L02':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L02_9280A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035944_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L01_9280A_m0_{Pair}.fq.gz'
+      'CL100035944_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L02_9280A_m0_{Pair}.fq.gz'
+    '9280N':
+      'CL100040898_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L01_9280N_m0_{Pair}.fq.gz'
+      'CL100040898_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100040898_L02_9280N_m0_{Pair}.fq.gz'
+
+  '9282':
+    '9282A':
+      'CL100035942_L02':
+        Untrimmed: '/steveData/saola/qcmapping/results/demultiplexed/CL100035942_L02_9282A_m0_{Pair}.fq.gz'
+        Options:
+          AdapterRemoval:
+            --adapter2: TAAGTCGGATCGTAGCCATGTCGTTCTGTGAGCCAAGGAGTT
+
+      'CL100035944_L01': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L01_9282A_m0_{Pair}.fq.gz'
+      'CL100035944_L02': '/steveData/saola/qcmapping/results/demultiplexed/CL100035944_L02_9282A_m0_{Pair}.fq.gz'
