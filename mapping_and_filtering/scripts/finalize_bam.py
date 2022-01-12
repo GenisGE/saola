@@ -4,9 +4,9 @@ import functools
 import json
 import logging
 import sys
+import time
 
 from collections import defaultdict
-from itertools import groupby
 from pathlib import Path
 
 import pysam
@@ -33,6 +33,8 @@ class BAMTimer:
     def __init__(self, handle):
         self._log = logging.getLogger(__name__)
         self._handle = handle
+        self._start_time = time.time()
+        self._last_time = time.time()
 
         self._filename = self._handle.filename.decode()
         if self._filename == "-":
@@ -40,21 +42,65 @@ class BAMTimer:
 
     def __iter__(self):
         idx = 0
+        step = 10_000_000
         for idx, record in enumerate(self._handle, start=1):
             yield record
 
-            if not idx % 1_000_000:
-                self._log_line(idx, " ..")
+            if not idx % step:
+                current_time = time.time()
+                self._log.info(
+                    "%s records in %r processed. %.1f seconds/million ..",
+                    format(idx, ","),
+                    self._filename,
+                    (current_time - self._last_time) / (step / 1e6),
+                )
+                self._last_time = current_time
 
-        self._log_line(idx, ".")
-
-    def _log_line(self, idx, end):
         self._log.info(
-            "%s records in %r processed%s",
+            "%s records in %r processed in %1.f minutes.",
             format(idx, ","),
             self._filename,
-            end,
+            (time.time() - self._start_time) / 60,
         )
+
+
+# based on Python's 'inclusive' quantile algorithm
+def quantiles_from_counts(counts, quantiles):
+    m = sum(counts.values()) - 1
+    if m < 1:
+        raise ValueError("at least two values required to calculate quantile")
+
+    points = []
+    for value in quantiles:
+        if not 0 < value < 1:
+            raise ValueError(f"invalid quantile {value!r}")
+
+        n = 1.0 / value
+        idx, mod = divmod(m, n)
+        points.append((idx, mod, n))
+
+    points.sort(reverse=True)
+    if not points:
+        raise ValueError("no quantiles specified")
+
+    start = 0
+    idx, mod, n = points.pop()
+    counts = sorted(counts.items())
+    for nth, (value, count) in enumerate(counts):
+        end = start + count
+
+        while start <= idx < end:
+            value_2 = value
+            if end <= idx + 1:
+                value_2 = counts[nth + 1][0]
+
+            yield (value * (n - mod) + value_2 * mod) / n
+            if not points:
+                break
+
+            idx, mod, n = points.pop()
+
+        start = end
 
 
 def identify_read(record):
@@ -67,6 +113,42 @@ def identify_read(record):
         return "single"
 
 
+CIGAR_FIELDS = {
+    "M": 0,
+    "I": 1,
+    "D": 2,
+    "N": 3,
+    "S": 4,
+    "H": 5,
+    "P": 6,
+    "=": 7,
+    "X": 8,
+}
+
+
+@functools.lru_cache
+def parse_cigar_string(cigar_str):
+    if cigar_str == "*":
+        return ()
+
+    cigars = []
+    count = 0
+    query_length = 0
+    for char in cigar_str:
+        if char.isdigit():
+            count = count * 10 + int(char)
+        else:
+            cigars.append((CIGAR_FIELDS[char], count))
+            if char in "MIS=X":
+                query_length += count
+
+            count = 0
+
+    assert not count, cigar_str
+
+    return tuple(cigars), query_length
+
+
 @functools.lru_cache()
 def count_mapped_bases(cigar):
     total_matches = 0
@@ -77,56 +159,56 @@ def count_mapped_bases(cigar):
     return total_matches
 
 
-class FilteredRecord:
-    def __init__(self, args, record, statistics):
-        # Flip bit so that 1 represents improper segments
-        flag = record.flag ^ BAM_PROPER_SEGMENTS
+def filter_record(args, record, statistics):
+    # Flip bit so that 1 represents improper segments
+    flag = record.flag ^ BAM_PROPER_SEGMENTS
 
-        insert_size = None
-        if flag & BAM_SEGMENTED:
-            passes_filters = not flag & args.pe_filter_mask
-            insert_size = abs(record.template_length)
+    insert_size = None
+    if flag & BAM_SEGMENTED:
+        passes_filters = not flag & args.pe_filter_mask
+        insert_size = abs(record.template_length)
+    else:
+        passes_filters = not flag & args.se_filter_mask
+
+        qname = record.query_name
+        # Prefixes added by AdapterRemoval
+        if qname.startswith("M_") or qname.startswith("MT_"):
+            # May return None for unaligned reads
+            insert_size = record.query_length
+
+    # Whole flags are counted here and then bulk split into individual types later
+    statistics["flags"][flag] += 1
+
+    if record.mapping_quality < args.min_mapping_quality:
+        statistics["filters"]["low_mapping_quality"] += 1
+        passes_filters = False
+
+    if (
+        args.strict_mate_alignments
+        and record.is_paired
+        and not (record.is_unmapped or record.mate_is_unmapped)
+    ):
+        if record.reference_id == record.next_reference_id:
+            if (
+                (record.is_reverse == record.mate_is_reverse)
+                or (
+                    record.is_reverse
+                    and record.reference_start < record.next_reference_start
+                )
+                or (
+                    not record.is_reverse
+                    and record.next_reference_start < record.reference_start
+                )
+            ):
+                statistics["filters"]["bad_mate_orientation"] += 1
+                passes_filters = False
         else:
-            passes_filters = not flag & args.se_filter_mask
-
-            qname = record.query_name
-            # Prefixes added by AdapterRemoval
-            if qname.startswith("M_") or qname.startswith("MT_"):
-                # May return None for unaligned reads
-                insert_size = record.query_length
-
-        # Whole flags are counted here and then bulk split into individual types later
-        statistics["flags"][flag] += 1
-
-        if record.mapping_quality < args.min_mapping_quality:
-            statistics["filters"]["low_mapping_quality"] += 1
+            statistics["filters"]["different_contigs"] += 1
             passes_filters = False
 
-        if (
-            args.strict_mate_alignments
-            and record.is_paired
-            and not (record.is_unmapped or record.mate_is_unmapped)
-        ):
-            if record.reference_id == record.next_reference_id:
-                if (
-                    (record.is_reverse == record.mate_is_reverse)
-                    or (
-                        record.is_reverse
-                        and record.reference_start < record.next_reference_start
-                    )
-                    or (
-                        not record.is_reverse
-                        and record.next_reference_start < record.reference_start
-                    )
-                ):
-                    statistics["filters"]["bad_mate_orientation"] += 1
-                    passes_filters = False
-            else:
-                statistics["filters"]["different_contigs"] += 1
-                passes_filters = False
-
+    cigarmatches = None
+    if args.min_mapped_bases > 0 or args.min_mapped_fraction > 0:
         cigartuples = record.cigartuples
-        cigarmatches = None
         if cigartuples is not None:
             cigarmatches = count_mapped_bases(tuple(cigartuples))
 
@@ -138,113 +220,47 @@ class FilteredRecord:
                 statistics["filters"]["low_mapped_fraction"] += 1
                 passes_filters = False
 
-        # Insert size must be reasonable, but is probably not reliable for flagged reads
-        if insert_size is not None and passes_filters:
-            # Note that insert sizes get counted twice for paired reads here
-            json_insert_size = min(args.json_insert_size_cap, insert_size)
+    # Insert size must be reasonable, but is probably not reliable for flagged reads
+    if insert_size is not None and passes_filters:
+        # Note that insert sizes get counted twice for paired reads here:
+        # Once for the forward read and once for the reverse read
+        if flag & BAM_SEGMENTED and not (
+            args.min_paired_insert_size <= insert_size <= args.max_paired_insert_size
+        ):
+            statistics["insert_sizes"]["failed"][insert_size] += 1
+            statistics["filters"]["bad_insert_size"] += 1
+            passes_filters = False
+        else:
+            statistics["insert_sizes"]["passed"][insert_size] += 1
 
-            if flag & BAM_SEGMENTED and not (
-                args.min_paired_insert_size
-                <= insert_size
-                <= args.max_paired_insert_size
-            ):
-                statistics["insert_sizes"]["failed"][json_insert_size] += 1
-                statistics["filters"]["bad_insert_size"] += 1
+    if passes_filters and not args.allow_orphan_mates and record.is_paired:
+        # The mate can be assumed to be mapped at this point
+        if record.get_tag("MQ") < args.min_mapping_quality:
+            passes_filters = False
+        elif args.min_mapped_bases > 0 or args.min_mapped_fraction > 0:
+            mate_cigar, mate_cigarlength = parse_cigar_string(record.get_tag("MC"))
+            mate_cigarmatches = count_mapped_bases(mate_cigar)
+
+            if mate_cigarmatches < args.min_mapped_bases:
                 passes_filters = False
-            else:
-                statistics["insert_sizes"]["passed"][json_insert_size] += 1
+            elif mate_cigarmatches / mate_cigarlength < args.min_mapped_fraction:
+                passes_filters = False
 
-        self.record = record
-        self.statistics = statistics
-        self.passes_filters = passes_filters
-        self.cigarmatches = cigarmatches
+        if not passes_filters:
+            statistics["filters"]["orphan_reads"] += 1
 
-    def finalize(self):
-        record = self.record
+    key = "passed" if passes_filters else "failed"
+    statistics["totals"][key]["reads"] += 1
+    statistics["query_lengths"][key][record.query_length] += 1
+    statistics["mapping_quality"][key][record.mapping_quality] += 1
 
-        key = "passed" if self else "failed"
-        self.statistics["totals"][key]["reads"] += 1
-        self.statistics["query_lengths"][key][record.query_length] += 1
-        self.statistics["mapping_quality"][key][record.mapping_quality] += 1
+    if cigarmatches is not None:
+        statistics["matches"][key][cigarmatches] += 1
+        statistics["matches_pct"][key][
+            int(cigarmatches * 100 / record.query_length)
+        ] += 1
 
-        if self.cigarmatches is not None:
-            self.statistics["matches"][key][self.cigarmatches] += 1
-            self.statistics["matches_pct"][key][
-                int(self.cigarmatches * 100 / record.query_length)
-            ] += 1
-
-        return bool(self), record
-
-    def set_orphan(self):
-        self.passes_filters = False
-        self.statistics["filters"]["orphan_reads"] += 1
-
-    @property
-    def is_mate_1(self):
-        flag = self.record.flag
-        return (
-            (flag & BAM_SEGMENTED)
-            and (flag & BAM_IS_FIRST_SEGMENT)
-            and not (flag & BAM_IS_LAST_SEGMENT)
-        )
-
-    @property
-    def is_mate_2(self):
-        flag = self.record.flag
-        return (
-            (flag & BAM_SEGMENTED)
-            and (flag & BAM_IS_LAST_SEGMENT)
-            and not (flag & BAM_IS_FIRST_SEGMENT)
-        )
-
-    def __bool__(self):
-        return self.passes_filters
-
-
-def evaluate_alignments(args, records, statistics):
-    # Group statistics by type (merged, paired, etc.)
-    statistics = statistics[identify_read(records[0])]
-
-    mate_1_record = None
-    mate_2_record = None
-    filtered_records = []
-    for record in records:
-        filtered_record = FilteredRecord(args, record, statistics)
-
-        if filtered_record:
-            # FIXME: Check for multiple reads flagged as mate 1 or 2?
-            # FIXME: Handle internal segments (flagged as mate 1 AND mate 2)?
-            if filtered_record.is_mate_1:
-                assert mate_1_record is None
-                mate_1_record = filtered_record
-            elif filtered_record.is_mate_2:
-                assert mate_2_record is None
-                mate_2_record = filtered_record
-
-        filtered_records.append(filtered_record)
-
-    if not args.allow_orphan_mates:
-        if mate_1_record and not mate_2_record:
-            mate_1_record.set_orphan()
-        elif not mate_1_record and mate_2_record:
-            mate_2_record.set_orphan()
-
-    for record in filtered_records:
-        yield record.finalize()
-
-
-def process_reads_by_queryname(args, handle, statistics):
-    for _, records in groupby(BAMTimer(handle), lambda it: it.query_name):
-        yield from evaluate_alignments(args, tuple(records), statistics)
-
-
-def process_individual_reads(args, handle, statistics):
-    for record in BAMTimer(handle):
-        filtered_record = FilteredRecord(
-            args, record, statistics[identify_read(record)]
-        )
-
-        yield filtered_record.finalize()
+    return passes_filters
 
 
 def calculate_flag_statistics(args, statistics):
@@ -294,6 +310,38 @@ def calculate_totals(src, dst):
             raise ValueError(key)
 
 
+def finalize_insert_sizes(args, statistics):
+    quantiles = [i / 100 for i in range(1, 100)]
+
+    for metrics in statistics.values():
+        insert_sizes = metrics["insert_sizes"]
+        insert_sizes_quantiles = {}
+
+        for status, counts in insert_sizes.items():
+            if max(counts, default=0) > args.json_insert_size_cap:
+                truncated_counts = defaultdict(int)
+                for key, value in counts.items():
+                    insert_size = min(args.json_insert_size_cap, key)
+
+                    truncated_counts[insert_size] += value
+            else:
+                truncated_counts = counts
+
+            insert_sizes[status] = dict(truncated_counts)
+            if truncated_counts:
+                values = []
+                values.append(min(counts))
+                for value in quantiles_from_counts(counts, quantiles):
+                    values.append(int(round(value)))
+                values.append(max(counts))
+            else:
+                values = None
+
+            insert_sizes_quantiles[status] = values
+
+        metrics["insert_sizes_quantiles"] = insert_sizes_quantiles
+
+
 def calculate_statistics(args, handle, statistics):
     genome_size = sum(handle.lengths)
 
@@ -304,16 +352,18 @@ def calculate_statistics(args, handle, statistics):
         genome_size=genome_size,
     )
 
+    everything = {}
+    for counts in tuple(statistics.values()):
+        calculate_totals(counts, everything)
+
     for group, metrics in tuple(statistics.items()):
         totals = metrics["totals"]
         if not any(total["reads"] for total in totals.values()):
             statistics.pop(group)
 
-    totals = {}
-    for counts in tuple(statistics.values()):
-        calculate_totals(counts, totals)
+    statistics["*"] = everything
 
-    statistics["*"] = totals
+    finalize_insert_sizes(args, statistics)
 
     return statistics
 
@@ -322,23 +372,16 @@ def write_json(args, in_bam, statistics):
     lengths = in_bam.lengths
     statistics = calculate_statistics(args, in_bam, statistics)
 
-    def _filename(actual, override):
-        if not actual:
-            return None
-        elif override:
-            return str(override.absolute())
-        elif actual == Path("-"):
-            return str(actual)
-
-        return str(actual.absolute())
+    def _filepath(filepath):
+        if filepath is not None:
+            return str(filepath.absolute())
 
     with args.out_json.open("wt") as handle:
-
         json.dump(
             {
-                "input": _filename(args.in_bam.absolute(), args.json_override_input),
-                "output_passed": _filename(args.out_passed, args.json_override_passed),
-                "output_failed": _filename(args.out_failed, args.json_override_failed),
+                "input": _filepath(args.in_bam),
+                "output_passed": _filepath(args.out_passed),
+                "output_failed": _filepath(args.out_failed),
                 "settings": {
                     "--allow-improper-pairs": args.allow_improper_pairs,
                     "--allow-orphan-mates": args.allow_orphan_mates,
@@ -438,20 +481,6 @@ def configure_flag_filters(args):
     args.pe_filter_mask = sum(args.named_pe_filters.values())
 
 
-def is_queryname_ordering_required(args):
-    return (
-        args.min_paired_insert_size > 0
-        or args.max_paired_insert_size < float("inf")
-        or args.min_mapped_bases > 0
-        or args.min_mapped_fraction > 0
-        or args.min_mapping_quality > 0
-    ) and not args.allow_orphan_mates
-
-
-def is_queryname_ordered(handle):
-    return handle.header.get("HD", {}).get("SO") == "queryname"
-
-
 class HelpFormatter(argparse.ArgumentDefaultsHelpFormatter):
     def __init__(self, *args, **kwargs):
         kwargs.setdefault("width", 79)
@@ -540,21 +569,6 @@ def parse_args(argv):
 
     group = parser.add_argument_group("JSON")
     group.add_argument(
-        "--json-override-input",
-        type=Path,
-        help="Override the input file recorded in the JSON file",
-    )
-    group.add_argument(
-        "--json-override-passed",
-        type=Path,
-        help="Override the passed output file recorded in the JSON file",
-    )
-    group.add_argument(
-        "--json-override-failed",
-        type=Path,
-        help="Override the failed output file recorded in the JSON file",
-    )
-    group.add_argument(
         "--json-insert-size-cap",
         type=int,
         default=1_001,
@@ -580,23 +594,15 @@ def main(argv):
     if not (args.out_passed or args.out_failed or args.out_json):
         log.error("No --out-* arguments; please specify at least one output file")
         return 1
+    elif str(args.in_bam) in ("-", "/dev/stdin") and sys.stdin.isatty():
+        log.error("STDIN is a terminal; please specify an input file!")
+        return 1
 
     # Decide on which filters to enable/count in statistics
     configure_flag_filters(args)
 
     log.info("Reading alignents from %s", args.in_bam)
     in_bam = pysam.AlignmentFile(str(args.in_bam), threads=args.threads)
-
-    # Some filters require that we consider both the mate 1 and the mate 2 read at the
-    # same time, in which case the file has to be query-name ordered. This is because
-    # some filters may apply to one read but not the other (e.g. mapping quality).
-    if is_queryname_ordered(in_bam):
-        bamfile_reader = process_reads_by_queryname
-    elif is_queryname_ordering_required(args):
-        log.error("A queryname sorted input BAM is required for these filters!")
-        return 1
-    else:
-        bamfile_reader = process_individual_reads
 
     if args.out_passed:
         log.info("Writing proper alignents to %s", args.out_passed)
@@ -615,13 +621,13 @@ def main(argv):
         out_failed = None
 
     statistics = initialize_statistics(args)
-    for passed, record in bamfile_reader(args, in_bam, statistics):
-        if passed:
+    for record in BAMTimer(in_bam):
+        current_statistics = statistics[identify_read(record)]
+        if filter_record(args, record, current_statistics):
             if out_passed:
                 out_passed.write(record)
-        else:
-            if out_failed:
-                out_failed.write(record)
+        elif out_failed:
+            out_failed.write(record)
 
     if out_passed:
         out_passed.close()

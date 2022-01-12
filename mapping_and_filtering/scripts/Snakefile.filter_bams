@@ -1,11 +1,6 @@
 import os
 import fnmatch
 
-# Sorting options 
-sort_threads = 8
-sort_memory = 4  # GB per thread
-
-
 samples = []
 for filename in os.listdir("input"):
     if filename.endswith(".bam"):
@@ -19,32 +14,11 @@ rule all:
         expand("output/{sample}.stats.txt", sample=samples)
 
 
-rule sort_by_qname:
+rule filter_bam:
     input:
         "input/{sample}.bam"
     output:
-        "scratch/{sample}.name_sorted.bam"
-    threads: sort_threads
-    resources:
-        mem_mb=int(sort_threads * sort_memory * 1.10)
-    shell:
-        """
-        samtools sort {input} \
-            -n \
-            -T scratch/sort.$(uuidgen) \
-            --threads {threads} \
-            -m {sort_memory}G \
-            --output-fmt BAM \
-            -o {output}
-        """
-
-
-# Jira: PROJ-4
-rule filter_bam:
-    input:
-        "scratch/{sample}.name_sorted.bam"
-    output:
-        bam=temporary("scratch/{sample}.filtered.bam"),
+        bam="output/{sample}.bam",
         junk="output/{sample}.junk.bam",
         json="output/{sample}.json"
     threads: 4
@@ -61,28 +35,7 @@ rule filter_bam:
             --min-mapped-fraction 0.7 \
             --out-passed {output.bam} \
             --out-failed {output.junk} \
-            --out-json {output.json} \
-            --json-override-input "input/{wildcards.sample}.bam" \
-            --json-override-passed "output/{wildcards.sample}.bam"
-        """
-
-
-rule sort_by_coord:
-    input:
-        "scratch/{sample}.filtered.bam"
-    output:
-        "output/{sample}.bam"
-    threads: sort_threads
-    resources:
-        mem_mb=int(sort_threads * sort_memory * 1.05)
-    shell:
-        """
-        samtools sort {input} \
-            -T scratch/sort.$(uuidgen) \
-            --threads {threads} \
-            -m {sort_memory}G \
-            --output-fmt BAM \
-            -o {output}
+            --out-json {output.json}
         """
 
 
@@ -91,8 +44,9 @@ rule samtools_stats:
         "{filename}.bam"
     output:
         "{filename}.stats.txt"
+    threads: 3
     shell:
-        "samtools stats {input} > {output}"
+        "samtools stats --threads {threads} {input} > {output}"
 
 
 rule samtools_idx:
@@ -100,8 +54,9 @@ rule samtools_idx:
         "{filename}.bam"
     output:
         "{filename}.bam.bai"
+    threads: 3
     shell:
-        "samtools index {input} > {output}"
+        "samtools index -@ {threads} {input} > {output}"
 
 
 rule samtools_idxstats:
@@ -110,5 +65,6 @@ rule samtools_idxstats:
         bai="{filename}.bam.bai"
     output:
         "{filename}.idxstats.txt"
+    threads: 3
     shell:
-        "samtools idxstats {input.bam} > {output}"
+        "samtools idxstats --threads {threads} {input.bam} > {output}"
