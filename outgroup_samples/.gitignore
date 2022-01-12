@@ -1,0 +1,5 @@
+.snakemake
+
+output/
+temp/
+logs/
