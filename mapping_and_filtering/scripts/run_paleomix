@@ -1,0 +1,8 @@
+#!/bin/bash
+
+set -o nounset # Fail on unset variables
+set -o errexit # Fail on uncaught non-zero returncodes
+set -o pipefail # Fail is a command in a chain of pipes fails
+
+mkdir -p logs
+nice -19 ionice -c 3 paleomix bam run --destination output/ --log-file logs/${HOSTNAME}_$(date +"%Y%m%d_%H%M%S").txt --log-level info --max-threads 86 "$@"
