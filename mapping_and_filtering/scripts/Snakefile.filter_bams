@@ -1,26 +1,29 @@
-import os
 import fnmatch
+import os
+from pathlib import Path
 
-samples = []
-for filename in os.listdir("input"):
-    if filename.endswith(".bam"):
-        samples.append(filename.rsplit(".", 1)[0])
+
+def generate_output_filenames():
+    for filepath in Path.cwd().glob("input.batch_*/*.bam"):
+        _, batch = filepath.parent.name.split(".", 1)
+        sample = filepath.stem
+
+        for ext in (".bam", ".idxstats.txt", ".stats.txt"):
+            yield f"output.{batch}/{sample}{ext}"
 
 
 rule all:
     input:
-        expand("output/{sample}.bam", sample=samples),
-        expand("output/{sample}.idxstats.txt", sample=samples),
-        expand("output/{sample}.stats.txt", sample=samples)
+        generate_output_filenames()
 
 
 rule filter_bam:
     input:
-        "input/{sample}.bam"
+        "input.{batch}/{sample}.bam"
     output:
-        bam="output/{sample}.bam",
-        junk="output/{sample}.junk.bam",
-        json="output/{sample}.json"
+        bam="output.{batch}/{sample}.bam",
+        junk="output.{batch}/{sample}.junk.bam",
+        json="output.{batch}/{sample}.json"
     threads: 4
     shell:
         """

@@ -1,5 +1,7 @@
 .snakemake
 
 output/
+output.batch_*/
+project.batch_*.output/
 temp/
 logs/
