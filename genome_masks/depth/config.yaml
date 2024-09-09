@@ -1,0 +1,10 @@
+groups:
+  low: /home/genis/saola/genome_masks/v2/saola_ref/depth/lowdepth_bams.list
+  mediumhigh: /home/genis/saola/genome_masks/v2/saola_ref/depth/mediumhighdepth_bams.list
+outmain: results
+chroms: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+angsdparams:
+  maxdepth: 5000
+  minQ: 30
+  minMapQ: 25
+allbed: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.bed

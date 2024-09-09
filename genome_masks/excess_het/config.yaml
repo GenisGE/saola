@@ -1,0 +1,16 @@
+info: /home/genis/saola/genome_masks/v2/saola_ref/excess_het/saola_26_samples_mergedseq_generalpop_pop.info
+outmain: "results"
+scriptsdir: "scripts"
+chroms: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+ref: /jbod1/mikkel/projects/202103_saola/data/saolaRefN.fasta
+params:
+ angsd:
+  minQ: 30
+  minMapQ: 25
+ pcangsd:
+  e: 2
+ filter:
+  minF: -0.9
+  w: 10000
+  lrt: 24
+  

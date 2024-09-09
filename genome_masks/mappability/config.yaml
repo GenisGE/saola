@@ -1,0 +1,7 @@
+ref: /davidData/genis/references/saola/saolaRefN.fasta
+outmain: results
+tmp_dir: /steveData/genis/tmp
+settings:
+ k: 70
+ e: 2
+ m: 1
