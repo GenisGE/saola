@@ -1,0 +1,8 @@
+info: /home/genis/saola/info/good_final_26samples_2023.info
+outmain: results
+sites: /home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.regions
+chroms: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+params:
+ minQ: 30
+ minMapQ: 25
+ rmTrans: 1

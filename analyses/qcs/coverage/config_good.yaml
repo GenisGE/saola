@@ -1,0 +1,49 @@
+bed: /kellyData/home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.regions
+minmapq: 25
+outmain: results
+samples:
+  '9176D': /steveData/saola/mapnew2023/filtered_alignments/output.batch_4/9176C.saolaRefN.bam
+  '9176': /home/genis/saola/info/bams/saolaRefN/9176.saolaRefN.bam
+  9176B: /jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/filtered_alignments/output.batch_3/9176B.saolaRefN.bam
+  9176merged: /home/genis/saola/info/bams/saolaRefN/batch2/9176merged.saolaRefN.bam
+  '9253': /home/genis/saola/info/bams/saolaRefN/9253.saolaRefN.bam
+  '9254': /home/genis/saola/info/bams/saolaRefN/9254.saolaRefN.bam
+  '9255': /home/genis/saola/info/bams/saolaRefN/9255.saolaRefN.bam
+  '9257': /home/genis/saola/info/bams/saolaRefN/9257.saolaRefN.bam
+  '9258': /home/genis/saola/info/bams/saolaRefN/9258.saolaRefN.bam
+  '9259': /home/genis/saola/info/bams/saolaRefN/9259.saolaRefN.bam
+  '9260': /home/genis/saola/info/bams/saolaRefN/9260.saolaRefN.bam
+  '9262': /home/genis/saola/info/bams/saolaRefN/9262.saolaRefN.bam
+  '9264': /home/genis/saola/info/bams/saolaRefN/9264.saolaRefN.bam
+  '9264_2': /jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/filtered_alignments/output.batch_2/9264_2.saolaRefN.bam
+  '9267': /home/genis/saola/info/bams/saolaRefN/9267.saolaRefN.bam
+  '9268': /home/genis/saola/info/bams/saolaRefN/9268.saolaRefN.bam
+  '9270': /home/genis/saola/info/bams/saolaRefN/9270.saolaRefN.bam
+  '9272': /home/genis/saola/info/bams/saolaRefN/9272.saolaRefN.bam
+  '9275': /home/genis/saola/info/bams/saolaRefN/9275.saolaRefN.bam
+  '9279': /home/genis/saola/info/bams/saolaRefN/9279.saolaRefN.bam
+  '9280': /home/genis/saola/info/bams/saolaRefN/9280.saolaRefN.bam
+  '9282': /home/genis/saola/info/bams/saolaRefN/9282.saolaRefN.bam
+  P10: /home/genis/saola/info/bams/saolaRefN/P10.saolaRefN.bam
+  P11: /home/genis/saola/info/bams/saolaRefN/P11.saolaRefN.bam
+  P12: /home/genis/saola/info/bams/saolaRefN/P12.saolaRefN.bam
+  P13: /home/genis/saola/info/bams/saolaRefN/P13.saolaRefN.bam
+  P13B: /jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/filtered_alignments/output.batch_3/P13B.saolaRefN.bam
+  P13merged: /home/genis/saola/info/bams/saolaRefN/batch2/P13merged.saolaRefN.bam
+  P14: /home/genis/saola/info/bams/saolaRefN/P14.saolaRefN.bam
+  P2: /home/genis/saola/info/bams/saolaRefN/P2.saolaRefN.bam
+  P3: /home/genis/saola/info/bams/saolaRefN/P3.saolaRefN.bam
+  P4: /home/genis/saola/info/bams/saolaRefN/P4.saolaRefN.bam
+  P4B: /jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/filtered_alignments/output.batch_3/P4B.saolaRefN.bam
+  P4merged: /home/genis/saola/info/bams/saolaRefN/batch2/P4merged.saolaRefN.bam
+  P6: /home/genis/saola/info/bams/saolaRefN/P6.saolaRefN.bam
+  P8: /home/genis/saola/info/bams/saolaRefN/P8.saolaRefN.bam
+  P9: /home/genis/saola/info/bams/saolaRefN/P9.saolaRefN.bam
+  aBu: /jbod1/mikkel/projects/2103_saola.git/outgroup_samples/filtered_alignments/output/aBuff.saolaRefN.bam
+  cow: /jbod1/mikkel/projects/2103_saola.git/outgroup_samples/filtered_alignments/output/cow.saolaRefN.bam
+  dups1: /home/genis/saola/info/bams/saolaRefN/dups1.saolaRefN.bam
+  dups2: /home/genis/saola/info/bams/saolaRefN/dups2.saolaRefN.bam
+  dups3: /home/genis/saola/info/bams/saolaRefN/dups3.saolaRefN.bam
+  impala1508: /jbod1/mikkel/projects/2103_saola.git/outgroup_samples/filtered_alignments/output/impala1508.saolaRefN.bam
+  lkudu: /jbod1/mikkel/projects/2103_saola.git/outgroup_samples/filtered_alignments/output/lkudu.saolaRefN.bam
+  wBu: /jbod1/mikkel/projects/2103_saola.git/outgroup_samples/filtered_alignments/output/wBuff.saolaRefN.bam

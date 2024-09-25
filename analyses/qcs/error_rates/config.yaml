@@ -1,0 +1,8 @@
+bamlist: /home/genis/saola/info/bams_good_allsaolas_mergednomergedeverything.list
+outgroup: /jbod1/mikkel/projects/2103_saola.git/outgroup_samples/filtered_alignments/output/cow.saolaRefN.bam
+ref: /jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/data/saolaRefN.fasta
+sites: /home/genis/saola/genome_masks/saola_ref/all/beds/autosome_rep_het_dep_map.regions
+chroms: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+params:
+ minQ: 30
+ minMapQ: 25
