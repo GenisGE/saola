@@ -1,0 +1,31 @@
+commonname	scientific name	missratio	het
+central chimpanzee	Pan troglodytes troglodytes	0.7913774149	0.00176
+vervet monkey	Chlorocebus pygerythrus	0.8989296897	0.0018
+Malbrouck	Chlorocebus cynosuros	0.8056765089	
+brown bear	Ursus arctos	0.8066927162	
+Asian elephant	Elephas maximus	0.9698836615	
+African elephant	Loxodonta africana	0.906817798	
+great roundleaf bat	Hipposideros armiger	0.7227069313	
+eastern chimpanzee	Pan troglodytes schweinfurthii	0.8237369573	
+eastern gorilla	Gorilla beringei	1.275300778	0.0006479
+Nigeran-Cameroon chimpanzee	Pan troglodytes ellioti	0.8711485441	
+human	Homo sapiens	0.8681088917	0.0008950417
+island fox	Urocyon littoralis	1.257013222	
+minke whale	Balaenoptera acutorostrata	0.9553574764	0.00061
+house mouse	Mus musculus	0.4332714177	0.0080906
+snow leopard	Panthera uncia	0.7946748926	0.0002306
+tiger	Panthera tigris	0.9315750666	0.00060755
+western chimpanzee	Pan troglodytes	0.9793412277	0.000875
+western gorilla	Gorilla gorilla	1.042257431	0.001438
+grey wolf	Canis lupus	0.6300767427	0.0014913
+Himalayan field rat	Rattus nitidus	0.6540230878	
+brown rat	rattus norvegicus	0.63410037	0.00125
+wild boar	Sus scrofa	0.4810798857	0.0044082
+silvery gibbon	Hylobates moloch	1.187542337	
+northern white cheeked gibbon	Nomascus leucogenys	0.8662167202	
+Siamang gibbon	Symphalangus syndactylus	1.158157816	
+pileated gibbon	Hylobates pileatus	1.214386892	
+Sumatran Orangutan	Pongo abelii	0.7269297771	0.0011974
+Borneon Orangutan	Pongo pygmaeus	0.8149428268	0.0006472
+fin whale	Balaenoptera physalus	0.9365485931	0.00151
+green monkey	Chlorocebus sabaeus	0.9156637218	

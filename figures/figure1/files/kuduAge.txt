@@ -1,0 +1,7 @@
+SP	FAD	LAD
+whale	47.76   70.87
+goat	19.76   28.77
+kudu	15.98   23.6
+saola	12.07   18.09
+buffalo	11.04   16.66
+cattle	11.04   16.66

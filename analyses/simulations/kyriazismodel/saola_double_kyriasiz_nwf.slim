@@ -1,0 +1,737 @@
+initialize() {
+   initializeSLiMModelType("nonWF");
+	//initializeSLiMOptions(keepPedigrees=T);
+	defineConstant("geneLength", 1935);
+	initializeSex("A");
+	defineConstant("simID", getSeed());
+	//initializeTreeSeq();
+	initializeMutationRate(1.2e-8);
+	
+	// set dominance coefficients for different deleterious mutation types
+        defineConstant("h_wkDel", 0.45);
+        defineConstant("h_modDel", 0.2);
+        defineConstant("h_strDel", 0.05);
+        defineConstant("h_sublet", 0.0);
+        defineConstant("h_let", 0.0);
+
+	// set up discrete DFE with four mutation types coming from gamma DFE
+        // augmented with recessive lethals
+        initializeMutationType("m1", h_wkDel, "s", "do x=rgamma(1,-0.01314833,0.186); while (x < -0.001); return x;");
+        initializeMutationType("m2", h_modDel, "s", "do x=rgamma(1,-0.01314833,0.186); while (x < -0.01 | x >= -0.001); return x;");
+        initializeMutationType("m3", h_strDel, "s", "do x=rgamma(1,-0.01314833,0.186); while (x < -0.1 | x >= -0.01); return x;");
+        initializeMutationType("m4", h_sublet, "s", "do x=rgamma(1,-0.01314833,0.186); while (x >= -0.1); return x;");
+        initializeMutationType("m5", h_let,"f", -1.0);
+        initializeMutationType("m6", 0.5,"f", 0.0);
+
+        m1.mutationStackPolicy = "f";
+        m2.mutationStackPolicy = "f";
+        m3.mutationStackPolicy = "f";
+        m4.mutationStackPolicy = "f";
+        m5.mutationStackPolicy = "f";
+        m6.mutationStackPolicy = "f";
+
+        // proportion of new deleterious mutations that are recessive lethal
+        defineConstant("let_frac", 0.003);
+        
+        initializeGenomicElementType("g1", c(m1,m2,m3,m4,m5,m6), c(0.491*(1-let_frac), 0.247*(1-let_frac), 0.236*(1-let_frac), 0.026*(1-let_frac), let_frac, 0.433));
+
+	//number of genes on each autosome from saola annotations
+	gene_vec=c(89,323,366,480,769,1059,72,636,1032,448,100,854,657,525,664,102,883,345,350,96,42,634,484,729,596,204,346,782,1018,357,431,281,131,113,363,150,359,627,196,169,281,299);
+	
+	defineConstant("seqLength", sum(gene_vec)*geneLength);
+	
+	gene_num=sum(gene_vec);
+	
+	for (i in 1:gene_num){
+		initializeGenomicElement(g1, ((i-1)*geneLength)+(i-1), (i*geneLength)+(i-2) );
+	}
+	
+	rates=NULL;
+	
+	//assume no recombination within genes, a rate of 1e-3 between genes, and free recombination between chroms
+	for (i in 1:(size(gene_vec)-1)){
+		rates=c(rates, 0, rep(c(1e-3, 0), asInteger(gene_vec[i-1]-1)), 0.5);
+	}
+	rates=c(rates, 0, rep(c(1e-3, 0), asInteger(gene_vec[size(gene_vec)-1]-1)));
+	
+	ends=NULL;
+	for (i in 1:gene_num){
+		ends=c(ends, (i*geneLength)+(i-2), (i*geneLength)+(i-1));
+	}
+	ends=ends[0:(size(ends)-2)];
+	initializeRecombinationRate(rates, ends);
+
+}
+
+1:41666 reproduction() {
+	N = sim.getValue("N");
+	for (i in seqLen(N))
+	{
+		firstParent = p1.sampleIndividuals(1, sex='F');
+		secondParent = p1.sampleIndividuals(1, exclude=firstParent, sex='M');
+		p1.addCrossed(firstParent, secondParent);
+	}
+	self.active = 0;
+}
+
+early()
+{
+        // parents die; offspring survive proportional to fitness
+        inds = sim.subpopulations.individuals;
+        inds[inds.age > 0].fitnessScaling = 0.0;
+}
+
+// Saola Demography
+// can make this demography arbitrarily complex as described in the SLiM manual
+1 first() {
+	sim.addSubpop("p1", 13520);
+	sim.setValue("N", 13520);
+
+        // only convert to substitution neutral mutations!
+        m1.mutationStackPolicy = "f";
+        m2.mutationStackPolicy = "f";
+        m3.mutationStackPolicy = "f";
+        m4.mutationStackPolicy = "f";
+        m5.mutationStackPolicy = "f";
+        m6.mutationStackPolicy = "f";
+
+        m1.convertToSubstitution = F;
+        m2.convertToSubstitution = F;
+        m3.convertToSubstitution = F;
+        m4.convertToSubstitution = F;
+        m5.convertToSubstitution = F;
+        m6.convertToSubstitution = T;
+
+	writeFile("saola_stair_perez_out.csv", "POP,gen,popSize,heterozygosity,genLoadSlim,inbLoad,genLoad,realizedLoad,lethal_seg,sublet_seg,strDel_seg,modDel_seg,wkDel_seg,lethal_fix,sublet_fix,strDel_fix,modDel_fix,wkDel_fix,males,females", append=F);
+    writeFile("load_decomposed_byh.txt", "POP,gen,popSize,genLoadH0,genLoadH0.05,genLoadH0.2,genLoadH0.45,realGenLoadH0,realGenLoadH0.05,realGenLoadH0.2,realGenLoadH0.45", append=F);
+
+	writeFile("saola_breeding_first.csv", "POP,gen,popSize,heterozygosity,genLoadSlim,inbLoad,genLoad,realizedLoad,lethal_seg,sublet_seg,strDel_seg,modDel_seg,wkDel_seg,lethal_fix,sublet_fix,strDel_fix,modDel_fix,wkDel_fix,males,females", append=F);
+	writeFile("saola_breeding_early.csv", "POP,gen,popSize,heterozygosity,genLoadSlim,inbLoad,genLoad,realizedLoad,lethal_seg,sublet_seg,strDel_seg,modDel_seg,wkDel_seg,lethal_fix,sublet_fix,strDel_fix,modDel_fix,wkDel_fix,males,females", append=F);
+	writeFile("saola_breeding_late.csv", "POP,gen,popSize,heterozygosity,genLoadSlim,inbLoad,genLoad,realizedLoad,lethal_seg,sublet_seg,strDel_seg,modDel_seg,wkDel_seg,lethal_fix,sublet_fix,strDel_fix,modDel_fix,wkDel_fix,males,females", append=F);
+	writeFile("saola_hets_counter.csv", paste("generation", "population", "individual", "neutral", "weakly_deleterious", "moderately_deleterious", "strongly_deleterious", "sublethal", "lethal", sep=","), append=F);
+
+}
+
+
+
+// Split and first bottleneck
+41666 late() {
+	// p1 is North and p2 is Central
+	sim.addSubpop("p2",0).setValue("C",asInteger(5000*(2/3)));
+	p2.takeMigrants(p1.sampleIndividuals(asInteger((5000*(2/3))/2), sex="M"));
+	p2.takeMigrants(p1.sampleIndividuals(asInteger((5000*(2/3))/2), sex="F"));
+	sim.setValue("N", 5000);
+   sim.setValue("C", asInteger(5000*(2/3)));
+}
+
+41667 reproduction() {
+	N = sim.getValue("N");
+	for (i in seqLen(N))
+	{
+		firstParent = p1.sampleIndividuals(1, sex='F');
+		secondParent = p1.sampleIndividuals(1, exclude=firstParent, sex='M');
+		p1.addCrossed(firstParent, secondParent);
+	}
+	C = sim.getValue("C");
+	for (j in seqLen(C))
+	{
+		firstParent2 = p2.sampleIndividuals(1, sex='F');
+		secondParent2 = p2.sampleIndividuals(1, exclude=firstParent2, sex='M');
+		p2.addCrossed(firstParent2, secondParent2);
+	}
+	self.active = 0;
+}
+
+// Normal reproduction in both groups
+41668:44999 reproduction() {
+	N = sim.getValue("N");
+	for (i in seqLen(N))
+	{
+		firstParent = p1.sampleIndividuals(1, sex='F');
+		secondParent = p1.sampleIndividuals(1, exclude=firstParent, sex='M');
+		p1.addCrossed(firstParent, secondParent);
+	}
+	C = sim.getValue("C");
+	for (j in seqLen(C))
+	{
+		firstParent2 = p2.sampleIndividuals(1, sex='F');
+		secondParent2 = p2.sampleIndividuals(1, exclude=firstParent2, sex='M');
+		p2.addCrossed(firstParent2, secondParent2);
+	}
+	self.active = 0;
+}
+
+
+//Second bottleneck
+44833:45000 first() {
+	t = sim.cycle - 44833;
+	//exponential decay of log(p2 minimum last size / p2 initial size) divided by 167 generations until the present.
+	exp_rate = log(50/3333)/167;
+	p1_size = asInteger(round(exp(exp_rate * t) * 5000));
+	p2_size = asInteger(round(exp(exp_rate * t) * 3333));
+	sim.setValue("N", p1_size);
+   	sim.setValue("C", p2_size);
+	if (sim.cycle == 25000){
+		sim.setValue("p1_size",asInteger(p1_size));
+		sim.setValue("p2_size",asInteger(p2_size));
+	}
+}
+
+// for last generation create MANY (1000) inds per eac of the 2 population population
+// else we had not enough individauls to simulate all 9 breeding programs simultaneously
+// it is not realistic but it does not matter, each of the 9 breeding programs are alternative universes :)
+45000 reproduction() {
+	N = 1000;
+	for (i in seqLen(N))
+	{
+		firstParent = p1.sampleIndividuals(1, sex='F');
+		secondParent = p1.sampleIndividuals(1, exclude=firstParent, sex='M');
+		p1.addCrossed(firstParent, secondParent);
+	}
+	C = 1000;
+	for (j in seqLen(C))
+	{
+		firstParent2 = p2.sampleIndividuals(1, sex='F');
+		secondParent2 = p2.sampleIndividuals(1, exclude=firstParent2, sex='M');
+		p2.addCrossed(firstParent2, secondParent2);
+	}
+	self.active = 0;
+}
+
+
+//Admixture breeding program
+// create 9 populations (3 founding proportions x 3 founders number) 
+45000 late() {
+
+
+	// ADMIXED AT EQUAL PROPORTIONS
+	sim.addSubpop("p4",0);
+	p4.name="admix4";
+	p4.takeMigrants(p1.sampleIndividuals(1, sex="M"));
+	p4.takeMigrants(p1.sampleIndividuals(1, sex="F"));
+	p4.takeMigrants(p2.sampleIndividuals(1, sex="M"));
+	p4.takeMigrants(p2.sampleIndividuals(1, sex="F"));
+	// sim.setValue("K",p3.individualCount);
+	catn("Migrants in p4: " + p4.individualCount);
+
+	sim.addSubpop("p5",0);
+	p5.name = "admix12";
+	p5.takeMigrants(p1.sampleIndividuals(3, sex="M"));
+	p5.takeMigrants(p1.sampleIndividuals(3, sex="F"));
+	p5.takeMigrants(p2.sampleIndividuals(3, sex="M"));
+	p5.takeMigrants(p2.sampleIndividuals(3, sex="F"));
+	// value to keep count on which subpopulations are alive
+	catn("Migrants in p5: " + p5.individualCount);
+
+	sim.addSubpop("p6",0);
+	p6.name = "admix24";
+	p6.takeMigrants(p1.sampleIndividuals(6, sex="M"));
+	p6.takeMigrants(p1.sampleIndividuals(6, sex="F"));
+	p6.takeMigrants(p2.sampleIndividuals(6, sex="M"));
+	p6.takeMigrants(p2.sampleIndividuals(6, sex="F"));
+	// sim.setValue("K",p3.individualCount);
+	catn("Migrants in p6: " + p6.individualCount);
+
+	// SOUTHERN
+	sim.addSubpop("p7",0);
+	p7.name = "south4";
+	p7.takeMigrants(p2.sampleIndividuals(2, sex="M"));
+	p7.takeMigrants(p2.sampleIndividuals(2, sex="F"));
+	// sim.setValue("K",p3.individualCount);
+	catn("Migrants in p7: " + p7.individualCount);
+
+	sim.addSubpop("p8",0);
+	p8.name = "south12";
+	p8.takeMigrants(p2.sampleIndividuals(6, sex="M"));
+	p8.takeMigrants(p2.sampleIndividuals(6, sex="F"));
+	// sim.setValue("K",p3.individualCount);
+	catn("Migrants in p8: " + p8.individualCount);
+
+	sim.addSubpop("p9",0);
+	p9.name = "south24";
+	p9.takeMigrants(p2.sampleIndividuals(12, sex="M"));
+	p9.takeMigrants(p2.sampleIndividuals(12, sex="F"));
+	// sim.setValue("K",p3.individualCount);
+	catn("Migrants in p9: " + p9.individualCount);
+
+	// NORTHERN
+	sim.addSubpop("p10",0);
+	p10.name = "north4";
+	p10.takeMigrants(p1.sampleIndividuals(2, sex="M"));
+	p10.takeMigrants(p1.sampleIndividuals(2, sex="F"));
+	// sim.setValue("K",p10.individualCount);
+	catn("Migrants in p10: " + p10.individualCount);
+
+	sim.addSubpop("p11",0);
+	p11.name = "north12";
+	p11.takeMigrants(p1.sampleIndividuals(6, sex="M"));
+	p11.takeMigrants(p1.sampleIndividuals(6, sex="F"));
+	// sim.setValue("K",p3.individualCount);
+	catn("Migrants in p11: " + p11.individualCount);
+
+	sim.addSubpop("p12",0);
+	p12.name = "north24";
+	p12.takeMigrants(p1.sampleIndividuals(24, sex="M"));
+	p12.takeMigrants(p1.sampleIndividuals(24, sex="F"));
+	// sim.setValue("K",p3.individualCount);
+	catn("Migrants in p12: " + p12.individualCount);
+
+	// value to keep track on if subpopulations survive
+	p4.setValue("survives", "Yes");
+	p5.setValue("survives", "Yes");
+	p6.setValue("survives", "Yes");
+	p7.setValue("survives", "Yes");
+	p8.setValue("survives", "Yes");
+	p9.setValue("survives", "Yes");
+	p10.setValue("survives", "Yes");
+	p11.setValue("survives", "Yes");
+	p12.setValue("survives", "Yes");
+
+	// value to keep track if subpopulations are active
+	p1.setValue("active", F);
+	p2.setValue("active", F);
+	p4.setValue("active", T);
+	p5.setValue("active", T);
+	p6.setValue("active", T);
+	p7.setValue("active", T);
+	p8.setValue("active", T);
+	p9.setValue("active", T);
+	p10.setValue("active", T);
+	p11.setValue("active", T);
+	p12.setValue("active", T);
+
+}
+
+45001:45100 reproduction() {
+	// reproduce all subpopulations with popsize > 0, producing 2 offspring per individual
+	for (spop in sim.subpopulations){
+
+		if (!spop.getValue("active"))
+			next;
+
+		popsize = spop.individualCount * 2;
+
+		if(popsize == 0)
+			next;
+
+		for (i in seqLen(popsize)){
+			firstParent = spop.sampleIndividuals(1, sex='F');
+			secondParent = spop.sampleIndividuals(1, sex='M');
+			spop.addCrossed(firstParent, secondParent);
+		}	
+	}
+	self.active=0;
+
+}
+
+45001 first() {
+	sim.killIndividuals(p1.individuals);
+	sim.killIndividuals(p2.individuals);
+	p1.setValue("active", F);
+	p2.setValue("active", F);
+}
+
+
+1:45000 early(){
+	muts=sim.mutations;
+//	muts=sim.mutationsOfType(m1);
+//	currentids = muts.id;
+	
+	// output statistics every 1000 generations and other conditions
+	if ((sim.cycle % 1000 == 0 |  sim.cycle == 1 | sim.cycle == 41666 | sim.cycle == 41667 | (sim.cycle >= 41667)) & (size(p1.individuals) > 0)) {
+		// North: p1 estimations
+		
+		// print heterozygosity in different categories for sample of 5 individuals
+		for(ind in p1.sampleIndividuals(5)) {
+	
+			ind_muts = ind.genomes.mutations;
+			counts = ind.genomes.mutationCountsInGenomes(ind_muts);
+			hets = counts[counts==1];
+			s = ind_muts.selectionCoeff;
+			s_hets = s[counts==1];
+
+			neutral_het = hets[s_hets== 0];
+			lethal_het = hets[s_hets == -1];
+			sublet_het = hets[s_hets > -1 & s_hets <= -0.1 ];
+			strDel_het = hets[s_hets <= -0.01 & s_hets > -0.1 ];
+			modDel_het = hets[s_hets <= -0.001 & s_hets > -0.01 ];
+			wkDel_het = hets[s_hets < 0 & s_hets > -0.001];
+			writeFile("saola_hets_counter.csv", paste(sim.cycle, "North", ind.index, sum(neutral_het), sum(wkDel_het), sum(modDel_het), sum(strDel_het), sum(sublet_het), sum(lethal_het), sep=","), append=T);
+	}
+		// Calculate gender ratio, if any are extinct, stop sim.
+		females = size(p1.individuals.sex[p1.individuals.sex=='F']);
+		males = size(p1.individuals.sex[p1.individuals.sex=='M']);
+		
+		//get segregating muts
+		freq = p1.genomes.mutationFrequenciesInGenomes(muts);
+		seg = muts[freq != 1.0 & freq > 0];
+
+		lethal_seg = seg[seg.selectionCoeff==-1];
+		sublet_seg = seg[seg.selectionCoeff > -1 & seg.selectionCoeff <= -0.1 ];
+		strDel_seg = seg[seg.selectionCoeff <= -0.01 & seg.selectionCoeff > -0.1 ];
+		modDel_seg = seg[seg.selectionCoeff <= -0.001 & seg.selectionCoeff > -0.01 ];
+		wkDel_seg = seg[seg.selectionCoeff > -0.001];
+		
+		//get fixed muts
+		fixed = muts[freq == 1.0];
+		
+		lethal_fix = fixed[fixed.selectionCoeff==-1];
+		sublet_fix = fixed[fixed.selectionCoeff > -1 & fixed.selectionCoeff <= -0.1 ];
+		strDel_fix = fixed[fixed.selectionCoeff <= -0.01 & fixed.selectionCoeff > -0.1 ];
+		modDel_fix = fixed[fixed.selectionCoeff <= -0.001 & fixed.selectionCoeff > -0.01 ];
+		wkDel_fix = fixed[fixed.selectionCoeff > -0.001];
+		
+		// get load as 1 - fitness
+		// SLiM calculates fitness multiplicatively each generation and caches it
+		genetic_load = 1-mean(p1.cachedFitness(NULL));
+		
+		// calculate inbreeding load
+		q = p1.genomes.mutationFrequenciesInGenomes(muts);
+		s = -muts.selectionCoeff;
+
+		// replace mutations with s>1.0 with 1.0 (can happen when drawing from gamma distribution)
+		s[s>1.0]=1.0;
+	
+
+		// get h for each mutation
+		// note that this will not work if changing h using fitness callbacks
+		h=muts.mutationType.dominanceCoeff;
+		//
+
+		// calculate and print to file loads decomposed by H bin
+		bin1 = h == 0;
+		bin2 = h > 0.04 & h < 0.06;
+		bin3 = h > 0.19 & h < 0.21;
+		bin4 = h > 0.44 & h < 0.46;
+
+		genLoad1 = sum(q[bin1] * s[bin1]);
+		genLoad2 = sum(q[bin2] * s[bin2]);
+		genLoad3 = sum(q[bin3] * s[bin3]);
+		genLoad4 = sum(q[bin4] * s[bin4]);
+
+		relative_load1 = sum(q[bin1]^2*s[bin1])+2*sum(q[bin1]*(1-q[bin1])*s[bin1]*h[bin1]);
+		relative_load2 = sum(q[bin2]^2*s[bin2])+2*sum(q[bin2]*(1-q[bin2])*s[bin2]*h[bin2]);
+		relative_load3 = sum(q[bin3]^2*s[bin3])+2*sum(q[bin3]*(1-q[bin3])*s[bin3]*h[bin3]);
+		relative_load4 = sum(q[bin4]^2*s[bin4])+2*sum(q[bin4]*(1-q[bin4])*s[bin4]*h[bin4]);
+
+		writeFile("load_decomposed_byh.txt", "North," + sim.cycle + "," + p1.individuals.size() + "," + genLoad1 + "," + genLoad2 + "," + genLoad3 + "," + genLoad4 + "," + relative_load1 + "," + relative_load2 + "," + relative_load3 + "," + relative_load4, append=T);
+
+		//print(h);
+		// calculate number of diploid lethal equivalents (B or inbreeding load)
+		// equation from Morton et al 1956
+		// note that this equation assumes random mating
+		inbreeding_load = sum(q*s)-sum(q^2*s)-2*sum(q*(1-q)*s*h);
+		genetic_pop = sum(q*s);
+		relative_load = sum(q^2*s)+2*sum(q*(1-q)*s*h);
+		
+		heterozygosity = calcHeterozygosity(p1.genomes);
+		
+		writeFile("saola_stair_perez_out.csv", "North" + "," + sim.cycle + "," + p1.individuals.size() + "," + heterozygosity + "," + genetic_load + "," + inbreeding_load + "," + genetic_pop + "," + relative_load + "," + lethal_seg.length()  + "," + sublet_seg.length() + "," + strDel_seg.length() + "," + modDel_seg.length() + "," + wkDel_seg.length() + "," + lethal_fix.length() + "," + sublet_fix.length() + "," + strDel_fix.length() + "," + modDel_fix.length() + "," + wkDel_fix.length() + "," + males + "," + females, append=T);
+		
+		//Central: p2 estimations 
+		if (sim.cycle >= 41667) {
+			if(size(p2.individuals) > 0) {
+			// Calculate gender ratio, if any are extinct, stop sim.
+			females2 = size(p2.individuals.sex[p2.individuals.sex=='F']);
+			males2 = size(p2.individuals.sex[p2.individuals.sex=='M']);
+			
+
+		// print heterozygosity in different categories for sample of 5 individuals
+		for(ind in p2.sampleIndividuals(5)) {
+	
+			ind_muts = ind.genomes.mutations;
+			counts = ind.genomes.mutationCountsInGenomes(ind_muts);
+			hets = counts[counts==1];
+			s = ind_muts.selectionCoeff;
+			s_hets = s[counts==1];
+
+			neutral_het = hets[s_hets== 0];
+			lethal_het = hets[s_hets == -1];
+			sublet_het = hets[s_hets > -1 & s_hets <= -0.1 ];
+			strDel_het = hets[s_hets <= -0.01 & s_hets > -0.1 ];
+			modDel_het = hets[s_hets <= -0.001 & s_hets > -0.01 ];
+			wkDel_het = hets[s_hets < 0 & s_hets > -0.001];
+			writeFile("saola_hets_counter.csv", paste(sim.cycle, "South", ind.index, sum(neutral_het), sum(wkDel_het), sum(modDel_het), sum(strDel_het), sum(sublet_het), sum(lethal_het), sep=","), append=T);
+	}
+
+			//p2 popSize
+			p2_size = sim.subpopulations.individuals.size()-p1.individuals.size();
+			
+			//get segregating muts
+			freq2 = p2.genomes.mutationFrequenciesInGenomes(muts);
+			seg2 = muts[freq2 != 1.0 & freq2 > 0];
+			
+
+			lethal_seg2 = seg2[seg2.selectionCoeff==-1];
+			sublet_seg2 = seg2[seg2.selectionCoeff > -1 & seg2.selectionCoeff <= -0.1 ];
+			strDel_seg2 = seg2[seg2.selectionCoeff <= -0.01 & seg2.selectionCoeff > -0.1 ];
+			modDel_seg2 = seg2[seg2.selectionCoeff <= -0.001 & seg2.selectionCoeff > -0.01 ];
+			wkDel_seg2 = seg2[seg2.selectionCoeff > -0.001];
+			
+			//get fixed muts
+			fixed2 = muts[freq2 == 1.0];
+			
+			lethal_fix2 = fixed2[fixed2.selectionCoeff==-1];
+			sublet_fix2 = fixed2[fixed2.selectionCoeff > -1 & fixed2.selectionCoeff <= -0.1 ];
+			strDel_fix2 = fixed2[fixed2.selectionCoeff <= -0.01 & fixed2.selectionCoeff > -0.1 ];
+			modDel_fix2 = fixed2[fixed2.selectionCoeff <= -0.001 & fixed2.selectionCoeff > -0.01 ];
+			wkDel_fix2 = fixed2[fixed2.selectionCoeff > -0.001];
+			
+			// get load as 1 - fitness
+			// SLiM calculates fitness multiplicatively each generation and caches it
+			genetic_load2 = 1-mean(p2.cachedFitness(NULL));
+			
+			// calculate inbreeding load
+			q2 = p2.genomes.mutationFrequenciesInGenomes(muts);
+			s2 = -muts.selectionCoeff;
+			
+			// replace mutations with s>1.0 with 1.0 (can happen when drawing from gamma distribution)
+			s2[s2>1.0]=1.0;
+			
+			// get h for each mutation
+			// note that this will not work if changing h using fitness callbacks
+			h2 = muts.mutationType.dominanceCoeff;
+
+			
+			// calculate and print to file loads decomposed by H bin
+			bin1 = h2 == 0;
+			bin2 = h2 > 0.04 & h2 < 0.06;
+			bin3 = h2 > 0.19 & h2 < 0.21;
+			bin4 = h2 > 0.44 & h2 < 0.46;
+
+
+			genLoad1 = sum(q2[bin1] * s2[bin1]);
+			genLoad2 = sum(q2[bin2] * s2[bin2]);
+			genLoad3 = sum(q2[bin3] * s2[bin3]);
+			genLoad4 = sum(q2[bin4] * s2[bin4]);
+
+			relative_load1 = sum(q2[bin1]^2*s2[bin1])+2*sum(q2[bin1]*(1-q2[bin1])*s2[bin1]*h2[bin1]);
+			relative_load2 = sum(q2[bin2]^2*s2[bin2])+2*sum(q2[bin2]*(1-q2[bin2])*s2[bin2]*h2[bin2]);
+			relative_load3 = sum(q2[bin3]^2*s2[bin3])+2*sum(q2[bin3]*(1-q2[bin3])*s2[bin3]*h2[bin3]);
+			relative_load4 = sum(q2[bin4]^2*s2[bin4])+2*sum(q2[bin4]*(1-q2[bin4])*s2[bin4]*h2[bin4]);
+
+			writeFile("load_decomposed_byh.txt", "South," + sim.cycle + "," + p2.individuals.size() + "," + genLoad1 + "," + genLoad2 + "," + genLoad3 + "," + genLoad4 + "," + relative_load1 + "," + relative_load2 + "," + relative_load3 + "," + relative_load4, append=T);
+
+
+			// calculate number of diploid lethal equivalents (B or inbreeding load)
+			// equation from Morton et al 1956
+			// note that this equation assumes random mating
+			inbreeding_load2 = sum(q2*s2)-sum(q2^2*s2)-2*sum(q2*(1-q2)*s2*h2);
+			genetic_pop2 = sum(q2*s2);
+			relative_load2 = sum(q2^2*s2)+2*sum(q2*(1-q2)*s2*h2);
+
+			heterozygosity = calcHeterozygosity(p2.genomes);
+
+			writeFile("saola_stair_perez_out.csv", "South" + "," + sim.cycle + "," + p2_size + "," + heterozygosity + "," + genetic_load2 + "," + inbreeding_load2 + "," + genetic_pop2 + "," + relative_load2 + "," + lethal_seg2.length()  + "," + sublet_seg2.length() + "," + strDel_seg2.length() + "," + modDel_seg2.length() + "," + wkDel_seg2.length() + "," + lethal_fix2.length() + "," + sublet_fix2.length() + "," + strDel_fix2.length() + "," + modDel_fix2.length() + "," + wkDel_fix2.length() + "," + males2 + "," + females2, append=T);
+			}
+		}
+	}
+}
+
+45001:45100 first(){
+
+	muts=sim.mutations;
+	for (subpop in sim.subpopulations){
+
+		if (!subpop.getValue("active"))
+			next;
+
+		if (subpop.individuals.size() == 0)
+			next;
+
+		females = size(subpop.individuals.sex[subpop.individuals.sex=='F']);
+		males = size(subpop.individuals.sex[subpop.individuals.sex=='M']);
+
+		//get segregating muts
+		freq = subpop.genomes.mutationFrequenciesInGenomes(muts);
+		seg = muts[freq != 1.0 & freq > 0];
+
+		lethal_seg = seg[seg.selectionCoeff==-1];
+		sublet_seg = seg[seg.selectionCoeff > -1 & seg.selectionCoeff <= -0.1 ];
+		strDel_seg = seg[seg.selectionCoeff <= -0.01 & seg.selectionCoeff > -0.1 ];
+		modDel_seg = seg[seg.selectionCoeff <= -0.001 & seg.selectionCoeff > -0.01 ];
+		wkDel_seg = seg[seg.selectionCoeff > -0.001];
+		
+		//get fixed muts
+		fixed = muts[freq == 1.0];
+		
+		lethal_fix = fixed[fixed.selectionCoeff==-1];
+		sublet_fix = fixed[fixed.selectionCoeff > -1 & fixed.selectionCoeff <= -0.1 ];
+		strDel_fix = fixed[fixed.selectionCoeff <= -0.01 & fixed.selectionCoeff > -0.1 ];
+		modDel_fix = fixed[fixed.selectionCoeff <= -0.001 & fixed.selectionCoeff > -0.01 ];
+		wkDel_fix = fixed[fixed.selectionCoeff > -0.001];
+		
+		// get load as 1 - fitness
+		// SLiM calculates fitness multiplicatively each generation and caches it
+		genetic_load = 1-mean(subpop.cachedFitness(NULL));
+		
+		// calculate inbreeding load
+		q = subpop.genomes.mutationFrequenciesInGenomes(muts);
+		s = -muts.selectionCoeff;
+
+		// replace mutations with s>1.0 with 1.0 (can happen when drawing from gamma distribution)
+		s[s>1.0]=1.0;
+	
+
+		// get h for each mutation
+		// note that this will not work if changing h using fitness callbacks
+		h=muts.mutationType.dominanceCoeff;
+		//
+		inbreeding_load = sum(q*s)-sum(q^2*s)-2*sum(q*(1-q)*s*h);
+		genetic_pop = sum(q*s);
+		relative_load = sum(q^2*s)+2*sum(q*(1-q)*s*h);
+		
+		heterozygosity = calcHeterozygosity(subpop.genomes);
+
+		
+		writeFile("saola_breeding_first.csv", subpop.name + "," + sim.cycle + "," + subpop.individuals.size() + "," + heterozygosity + "," + genetic_load + "," + inbreeding_load + "," + genetic_pop + "," + relative_load + "," + lethal_seg.length()  + "," + sublet_seg.length() + "," + strDel_seg.length() + "," + modDel_seg.length() + "," + wkDel_seg.length() + "," + lethal_fix.length() + "," + sublet_fix.length() + "," + strDel_fix.length() + "," + modDel_fix.length() + "," + wkDel_fix.length() + "," + males + "," + females, append=T);
+	
+	}
+} 
+
+
+45001:45100 early(){
+
+	muts=sim.mutations;
+	for (subpop in sim.subpopulations){
+
+		if (!subpop.getValue("active"))
+			next;
+
+		if (subpop.individuals.size() == 0)
+			next;
+
+		females = size(subpop.individuals.sex[subpop.individuals.sex=='F']);
+		males = size(subpop.individuals.sex[subpop.individuals.sex=='M']);
+
+		//get segregating muts
+		freq = subpop.genomes.mutationFrequenciesInGenomes(muts);
+		seg = muts[freq != 1.0 & freq > 0];
+
+		lethal_seg = seg[seg.selectionCoeff==-1];
+		sublet_seg = seg[seg.selectionCoeff > -1 & seg.selectionCoeff <= -0.1 ];
+		strDel_seg = seg[seg.selectionCoeff <= -0.01 & seg.selectionCoeff > -0.1 ];
+		modDel_seg = seg[seg.selectionCoeff <= -0.001 & seg.selectionCoeff > -0.01 ];
+		wkDel_seg = seg[seg.selectionCoeff > -0.001];
+
+		//get fixed muts
+		fixed = muts[freq == 1.0];
+		
+		lethal_fix = fixed[fixed.selectionCoeff==-1];
+		sublet_fix = fixed[fixed.selectionCoeff > -1 & fixed.selectionCoeff <= -0.1 ];
+		strDel_fix = fixed[fixed.selectionCoeff <= -0.01 & fixed.selectionCoeff > -0.1 ];
+		modDel_fix = fixed[fixed.selectionCoeff <= -0.001 & fixed.selectionCoeff > -0.01 ];
+		wkDel_fix = fixed[fixed.selectionCoeff > -0.001];
+		
+		// get load as 1 - fitness
+		// SLiM calculates fitness multiplicatively each generation and caches it
+		genetic_load = 1-mean(subpop.cachedFitness(NULL));
+		
+		// calculate inbreeding load
+		q = subpop.genomes.mutationFrequenciesInGenomes(muts);
+		s = -muts.selectionCoeff;
+
+		// replace mutations with s>1.0 with 1.0 (can happen when drawing from gamma distribution)
+		s[s>1.0]=1.0;
+	
+
+		// get h for each mutation
+		// note that this will not work if changing h using fitness callbacks
+		h=muts.mutationType.dominanceCoeff;
+		//
+		inbreeding_load = sum(q*s)-sum(q^2*s)-2*sum(q*(1-q)*s*h);
+		genetic_pop = sum(q*s);
+		relative_load = sum(q^2*s)+2*sum(q*(1-q)*s*h);
+
+		heterozygosity = calcHeterozygosity(subpop.genomes);
+
+		writeFile("saola_breeding_early.csv", subpop.name + "," + sim.cycle + "," + subpop.individuals.size() + "," + heterozygosity + "," + genetic_load + "," + inbreeding_load + "," + genetic_pop + "," + relative_load + "," + lethal_seg.length()  + "," + sublet_seg.length() + "," + strDel_seg.length() + "," + modDel_seg.length() + "," + wkDel_seg.length() + "," + lethal_fix.length() + "," + sublet_fix.length() + "," + strDel_fix.length() + "," + modDel_fix.length() + "," + wkDel_fix.length() + "," + males + "," + females, append=T);
+		
+	}
+} 
+
+
+45001:45100 late(){
+
+	muts=sim.mutations;
+	for (subpop in sim.subpopulations){
+
+		if (!subpop.getValue("active"))
+			next;
+
+		if (subpop.individuals.size() == 0){
+			// for cases where all individuals died during fitness selection
+			subpop.setValue("active", F);
+			subpop.setValue("survives", "No");
+			sim.killIndividuals(subpop.individuals);
+			next;
+		}
+
+		females = size(subpop.individuals.sex[subpop.individuals.sex=='F']);
+		males = size(subpop.individuals.sex[subpop.individuals.sex=='M']);
+
+		//get segregating muts
+		freq = subpop.genomes.mutationFrequenciesInGenomes(muts);
+		seg = muts[freq != 1.0 & freq > 0];
+		
+		lethal_seg = seg[seg.selectionCoeff==-1];
+		sublet_seg = seg[seg.selectionCoeff > -1 & seg.selectionCoeff <= -0.1 ];
+		strDel_seg = seg[seg.selectionCoeff <= -0.01 & seg.selectionCoeff > -0.1 ];
+		modDel_seg = seg[seg.selectionCoeff <= -0.001 & seg.selectionCoeff > -0.01 ];
+		wkDel_seg = seg[seg.selectionCoeff > -0.001];
+
+		//get fixed muts
+		fixed = muts[freq == 1.0];
+		
+		lethal_fix = fixed[fixed.selectionCoeff==-1];
+		sublet_fix = fixed[fixed.selectionCoeff > -1 & fixed.selectionCoeff <= -0.1 ];
+		strDel_fix = fixed[fixed.selectionCoeff <= -0.01 & fixed.selectionCoeff > -0.1 ];
+		modDel_fix = fixed[fixed.selectionCoeff <= -0.001 & fixed.selectionCoeff > -0.01 ];
+		wkDel_fix = fixed[fixed.selectionCoeff > -0.001];
+		
+		// get load as 1 - fitness
+		// SLiM calculates fitness multiplicatively each generation and caches it
+		genetic_load = 1-mean(subpop.cachedFitness(NULL));
+		
+		// calculate inbreeding load
+		q = subpop.genomes.mutationFrequenciesInGenomes(muts);
+		s = -muts.selectionCoeff;
+
+		// replace mutations with s>1.0 with 1.0 (can happen when drawing from gamma distribution)
+		s[s>1.0]=1.0;
+
+		// get h for each mutation
+		// note that this will not work if changing h using fitness callbacks
+		h=muts.mutationType.dominanceCoeff;
+
+		inbreeding_load = sum(q*s)-sum(q^2*s)-2*sum(q*(1-q)*s*h);
+		genetic_pop = sum(q*s);
+		relative_load = sum(q^2*s)+2*sum(q*(1-q)*s*h);
+		
+		heterozygosity = calcHeterozygosity(subpop.genomes);
+
+		writeFile("saola_breeding_late.csv", subpop.name + "," + sim.cycle + "," + subpop.individuals.size() +  "," + heterozygosity + "," + genetic_load + "," + inbreeding_load + "," + genetic_pop + "," + relative_load + "," + lethal_seg.length()  + "," + sublet_seg.length() + "," + strDel_seg.length() + "," + modDel_seg.length() + "," + wkDel_seg.length() + "," + lethal_fix.length() + "," + sublet_fix.length() + "," + strDel_fix.length() + "," + modDel_fix.length() + "," + wkDel_fix.length() + "," + males + "," + females, append=T);
+		
+		if(subpop.individuals.size() > 1000){
+			// inactivate populations that group too much, these will survive
+			subpop.setValue("active", F);
+			sim.killIndividuals(subpop.individuals);
+		}
+
+		if(females == 0 | males == 0){
+			// inactivate populations that die and set survival to NO
+			subpop.setValue("active", F);
+			subpop.setValue("survives", "No");
+			sim.killIndividuals(subpop.individuals);
+		}
+	}
+}
+
+
+45101 first(){
+
+	// last step
+	writeFile("survival_log.txt", "admix4 admix12 admix24 south4 south12 south24 north4 north12 north24", append=F);
+	writeFile("survival_log.txt", p4.getValue("survives") + " " +  p5.getValue("survives") + " " + p6.getValue("survives") + " " + p7.getValue("survives") + " " +  p8.getValue("survives") + " " + p9.getValue("survives") + " " + p10.getValue("survives") + " " +  p11.getValue("survives") + " " + p12.getValue("survives") , append=T);
+
+}
