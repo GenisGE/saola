@@ -1,0 +1,34 @@
+
+bcf: "/steveData/saola/geno_calls/results/saola/vcf/Saola_PNgh_sites_nomultiallelics_noindels_10dp_3het.bcf.gz"
+outmain: "results"
+outbig: "/steveData/saola/analyses/rohcoalstuff"
+
+
+fai: "/home/genis/saola/analyses/rohintersections_stuff/saolaref_scaff10Mb.fai"
+genomebed: "/home/genis/saola/genome_masks/v2/saola_ref/all/beds/saolaRefN_autosomal_10MBscaff.bed"
+chromlist: "/home/genis/saola/genome_masks/v2/saola_ref/all/beds/saolaRefN_autosomal_10MBscaff.list"
+genomefile: "/home/genis/saola/analyses/inbreeding_selection_digging/rohs/saolaRefN_autosomal_10MBscaff_genomefile.list"
+
+mask: "/home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.bed"
+
+samples:
+  - "9264_2"
+  - "dups1"
+  - "9176merged"
+
+
+othersamples:
+ - "P9"
+ - "P13merged"
+ - "9259"
+ - "9253"
+
+
+otherroh:
+ "9264_2": "9259_9253"
+ "dups1": "9259_9253"
+ "9176merged": "P9_P13merged"
+
+rohfile: "/home/genis/saola/analyses/roh/plink/results/roh/roh_min1000kb_den100_win100_het1.hom"
+
+rohfileremove: "/home/genis/saola/analyses/roh/plink/results/roh/roh_min500kb_den100_win100_het1.hom"

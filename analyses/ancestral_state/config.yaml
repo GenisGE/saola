@@ -1,0 +1,8 @@
+
+
+
+outgroup: /jbod1/mikkel/projects/2103_saola.git/outgroup_samples/filtered_alignments/output/cow.saolaRefN.bam
+sites: /home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.regions
+chroms: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+
+

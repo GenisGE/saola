@@ -1,0 +1,36 @@
+outmain: "results_matchedsamples"
+outbig: "/davidData/genis/saola/pixy/matchedsmaples"
+
+bcf: "/steveData/saola/geno_calls/results/saola/vcf/Saola_PNgh_sites_nomultiallelics_noindels_notransitions_6dp_3het.bcf.gz"
+popfile: "/home/genis/saola/analyses/theta_win/pops_matchedsamples.file"
+genomefile: "/home/genis/saola/genome_masks/v2/saola_ref/all/beds/saolaRefN_autosomal_10MBscaff.bed"
+genomebed: "/home/genis/saola/genome_masks/v2/saola_ref/all/beds/saolaRefN_autosomal_10MBscaff.bed"
+
+gff: "/home/genis/saola/analyses/annotate/gff/saolaRefN_genes.gff.gz"
+fai: "/jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/data/saolaRefN.fasta.fai"
+
+keepsamples:
+  - "9259"
+  - "P9"
+  - "dups1"
+  - "9176merged"
+  - "P13merged"
+  - "9264_2"
+
+maxmiss:
+  - 0.5
+
+winsize:
+  - 5000
+  - 10000
+  - 25000
+  - 50000
+  - 100000
+  - 150000
+  - 200000
+  - 300000
+  - 250000
+  - 400000
+  - 500000
+  - 1000000
+

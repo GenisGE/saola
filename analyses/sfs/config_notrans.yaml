@@ -1,0 +1,25 @@
+
+sites: /home/genis/saola/genome_masks/saola_ref/all/beds/autosome_rep_het_dep_map.regions
+chroms: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+ref: /jbod1/mikkel/projects/202103_saola/data/saolaRefN.fasta
+anc: /home/genis/saola/analyses/ancestral_state/results/ancestral_cow.fa.gz
+outmain: results/notrans2
+outbig: /steveData/saola/analyses/sfs_unfolded/notrans2
+bamlists:
+ Central: "central.bamlist"
+ Northern: "northern.bamlist"
+ Northern2: "northern2.bamlist"
+ Northern3: "northern3.bamlist"
+ Northern4: "northern4.bamlist"
+ "9176": "9176merged.bamlist"
+ "9264": "9264_2.bamlist"
+
+filters:
+ angsd:
+  minq: 30
+  minmapq: 25
+  notrans: 1
+
+
+winsfs_params:
+ w: 500

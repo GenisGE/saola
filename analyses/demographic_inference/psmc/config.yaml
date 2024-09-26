@@ -1,0 +1,53 @@
+allele_support:
+- '2'
+- '3'
+beds:
+  all_filters: /home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.regions
+depths:
+  '9253':
+   - 6
+   - 16
+  '9279':
+   - 6
+   - 16
+  9176merged:
+  - 7
+  - 42
+  '9259':
+  - 6
+  - 16
+  '9264_2':
+  - 11
+  - 70
+  P13merged:
+  - 6
+  - 18
+  P4merged:
+  - 6
+  - 32
+  P9:
+  - 6
+  - 18
+  dups1:
+  - 6
+  - 30
+  dups2:
+  - 6
+  - 24
+outbig: /steveData/saola/analyses/psmc
+outmain: results
+plot_params:
+  g: 6
+  mu: 1.2e-08
+ref: /jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/data/saolaRefN.fasta
+samples:
+  '9253': /home/genis/saola/info/bams/saolaRefN/9253.saolaRefN.bam
+  '9279': /home/genis/saola/info/bams/saolaRefN/9279.saolaRefN.bam
+  9176merged: /home/genis/saola/info/bams/saolaRefN/batch2/9176merged.saolaRefN.bam
+  '9259': /home/genis/saola/info/bams/saolaRefN/9259.saolaRefN.bam
+  '9264_2': /home/genis/saola/info/bams/saolaRefN/9264_2.saolaRefN.bam
+  P13merged: /home/genis/saola/info/bams/saolaRefN/batch2/P13merged.saolaRefN.bam
+  P4merged: /home/genis/saola/info/bams/saolaRefN/batch2/P4merged.saolaRefN.bam
+  P9: /home/genis/saola/info/bams/saolaRefN/P9.saolaRefN.bam
+  dups1: /home/genis/saola/info/bams/saolaRefN/dups1.saolaRefN.bam
+  dups2: /home/genis/saola/info/bams/saolaRefN/dups2.saolaRefN.bam

@@ -1,0 +1,21 @@
+
+inplink: /davidData/malthe/africa/gt/results/saola_merged/plink/Saola_PNgh_variable_sites_nomultiallelics_noindels_notransitions_6dp_3het
+autosome_bed: /home/genis/saola/genome_masks/v2/saola_ref/all/beds/saolaRefN_autosomal_10MBscaff.bed
+fai: /jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/data/saolaRefN.fasta.fai
+
+outmain: results
+plotscriptsdir: plotscripts
+
+roh_pars:
+ min_kb_roh:
+  - 100
+  - 500
+  - 1000
+ min_kb_den:
+  - 100
+ win_snps:
+  - 100
+ win_het:
+  - 1
+  - 2
+
