@@ -1,0 +1,16 @@
+// Search ranges and rules file
+// ****************************
+
+[PARAMETERS]
+//#isInt? #name   #dist.#min  #max
+//all Ns are in number of diploid individuals
+1  NPOPS        unif    1    1000000   output
+1  NPOPN        unif    1    1000000   output
+1  NANC         unif    1    1000000   output
+
+1  TDIV         unif 1    1000000   output
+
+[RULES]
+
+[COMPLEX PARAMETERS]
+0  RES  = NANC/NPOPN     output

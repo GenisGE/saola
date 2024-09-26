@@ -1,0 +1,130 @@
+# snakemake to estimate 2dsfs, sfs and fst between popualtions pairs.
+# version 2 intention is to do a more efficient version which will use downsampled saf
+
+
+import pandas as pd
+import itertools as it
+
+ANGSD="/maps/projects/alab/scratch/genis/software/angsd/angsd"
+WINSFS="/home/lpq293/.cargo/bin/winsfs"
+RSCRIPT="Rscript"
+PYTHON="python3"
+FORMATDADI="scripts/formatToDadi.R"
+SPLITFORMATDADI="scripts/splitFormatToDadi.R"
+FOLD2DSFS="scripts/fold2dsfs.py"
+FORMATTOFSC="scripts/formatToFsc.R"
+
+OUTMAIN=config["outmain"]
+N_SPLITS=config["n_splits"]
+
+#pops = ["Chobe",  "Ugalla"]
+
+wildcard_constraints:
+    p1 = "|".join([x.split("-")[0] for x in config["pop_pairs"]]),
+    p2 = "|".join([x.split("-")[1] for x in config["pop_pairs"]])
+
+rule all:
+    input:
+        expand(os.path.join(OUTMAIN, "2dsfs_splits_fscformat", "split_{i}", "{pop_pairs}_split_{i}_folded_fscformat.sfs"),
+                pop_pairs = config["pop_pairs"], i = range(1, N_SPLITS + 1)),
+        expand(os.path.join(OUTMAIN, "2dsfs", "{pop_pairs}_split.sfs"),
+                pop_pairs = config["pop_pairs"]),
+        expand(os.path.join(OUTMAIN, "2dsfs_fscformat", "{pop_pairs}_folded_fscformat.sfs"),
+                pop_pairs = config["pop_pairs"])
+
+
+rule do_2dsfs:
+    input:
+        saf1 = lambda wildcards: config["safs"][wildcards.p1],
+        saf2 = lambda wildcards: config["safs"][wildcards.p2],
+    output:
+        sfs = os.path.join(OUTMAIN, "2dsfs", "{p1}-{p2}.sfs")
+    threads: 60
+    shell: """
+        {WINSFS} --threads {threads} {input.saf1} {input.saf2} > {output.sfs}
+    """
+
+
+rule do_splits_2dsfs:
+    input:
+        saf1 = lambda wildcards: config["safs"][wildcards.p1],
+        saf2 = lambda wildcards: config["safs"][wildcards.p2],
+        sfs = os.path.join(OUTMAIN, "2dsfs", "{p1}-{p2}.sfs")
+    output:
+        sfs_splits = os.path.join(OUTMAIN, "2dsfs", "{p1}-{p2}_split.sfs")
+    params:
+        splits = N_SPLITS,
+    threads: 60
+    shell: """
+        {WINSFS} split --splits {params.splits} --sfs {input.sfs} --threads {threads} {input.saf1} {input.saf2} > {output.sfs_splits}
+    """
+
+
+rule subtract_split_sfs:
+    input:
+        sfs_splits = os.path.join(OUTMAIN, "2dsfs", "{p1}-{p2}.sfs")
+    output:
+        expand(os.path.join(OUTMAIN, "2dsfs", "{{p1}}-{{p2}}_{i}out.sfs"), i=range(1, N_SPLITS + 1))
+    shell: """
+        {RSCRIPT} {SPLITFORMATDADI} {input.sfs_splits}
+    """
+
+
+rule sfs_to_dadi:
+    input:
+        sfs = os.path.join(OUTMAIN, "2dsfs", "{p1}-{p2}.sfs")
+    output:
+        sfs = os.path.join(OUTMAIN, "2dsfs", "{p1}-{p2}_dadiformat.sfs")
+    shell: """
+    {RSCRIPT} {FORMATDADI} {input.sfs}
+    """
+
+rule fold_sfs:
+    input:
+        sfs = os.path.join(OUTMAIN, "2dsfs", "{p1}-{p2}_dadiformat.sfs")
+    output:
+        sfs = os.path.join(OUTMAIN, "2dsfs_folded", "{p1}-{p2}_folded.sfs")
+    shell: """
+        {PYTHON} {FOLD2DSFS} {input.sfs} {output.sfs}
+    """
+
+
+
+rule format_to_fsc:
+    """ 
+    create fastsimcoal2 matrix format. note the script is hardcoded for impala population order (popord argument).
+    it will need modification if applied to other dataset
+"""
+    input:
+        sfs = os.path.join(OUTMAIN, "2dsfs_folded", "{p1}-{p2}_folded.sfs")
+    output:
+        sfs = os.path.join(OUTMAIN, "2dsfs_fscformat", "{p1}-{p2}_folded_fscformat.sfs")
+    shell: """
+        {RSCRIPT} {FORMATTOFSC} {input.sfs} {output.sfs} {wildcards.p1} {wildcards.p2}
+    """
+
+
+
+rule fold_sfs_split:
+    input:
+        sfs = os.path.join(OUTMAIN, "2dsfs", "{p1}-{p2}_{i}out.sfs")
+    output:
+        sfs = os.path.join(OUTMAIN, "2dsfs_splits_folded", "{p1}-{p2}_split_{i}_folded.sfs")
+    shell: """
+        {PYTHON} {FOLD2DSFS} {input.sfs} {output.sfs}
+    """
+
+
+rule format_to_fsc_split:
+    """ 
+    create fastsimcoal2 matrix format. note the script is hardcoded for impala population order (popord argument).
+    it will need modification if applied to other dataset
+"""
+    input:
+        sfs = os.path.join(OUTMAIN, "2dsfs_splits_folded", "{p1}-{p2}_split_{i}_folded.sfs")
+    output:
+        sfs = os.path.join(OUTMAIN, "2dsfs_splits_fscformat", "split_{i}", "{p1}-{p2}_split_{i}_folded_fscformat.sfs")
+    shell: """
+        {RSCRIPT} {FORMATTOFSC} {input.sfs} {output.sfs} {wildcards.p1} {wildcards.p2}
+    """
+

@@ -1,0 +1,11 @@
+
+outmain: results
+
+safs:
+ Northern: /maps/projects/popgen/people/lpq293/saola/steveData/saola/analyses/sfs_unfolded/notrans2saf1/safs/Northern2.saf.idx
+ Southern: /maps/projects/popgen/people/lpq293/saola/steveData/saola/analyses/sfs_unfolded/notrans2saf1/safs/Central.saf.idx
+
+n_splits: 50
+
+pop_pairs:
+ - Southern-Northern
