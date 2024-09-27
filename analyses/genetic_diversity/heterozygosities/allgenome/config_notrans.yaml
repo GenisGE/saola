@@ -1,0 +1,11 @@
+outmain: results_notrans2
+outbig: /steveData/saola/analyses/heterozygosities/saolaRef/notrans2
+ref: /davidData/genis/references/saola/saolaRefN.fasta
+bamlist: /home/genis/saola/info/bams_good_allsaolas_mergednomergedeverything.list
+idlist: /home/genis/saola/info/ids_good_allsaolas_mergednomergedeverything.ids
+mask: /home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.regions
+chromlist: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+filters:
+ minq: 30
+ minmapq: 25
+ notrans: 1

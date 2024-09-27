@@ -1,0 +1,15 @@
+outmain: results_allmuts
+outbig: /steveData/saola/analyses/hetsnorohs/saolaRef/allmuts
+ref: /davidData/genis/references/saola/saolaRefN.fasta
+bamlist: saolas_highdepth.bamlist
+idlist: saola_hidepth.ids
+
+rohfile: /home/genis/saola/analyses/roh/plink/results/roh/roh_min1000kb_den100_win100_het1.hom
+mask: /home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.bed
+
+chromlist: /home/genis/saola/genome_masks/v2/saola_ref/all/beds/saolaRefN_autosomal_10MBscaff.list
+
+filters:
+ minq: 30
+ minmapq: 25
+ rmtrans: 0

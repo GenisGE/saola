@@ -1,0 +1,31 @@
+
+outmain: "results"
+
+inplink: "/maps/projects/popgen/people/lpq293/saola/analyses/rohsharing/plink/Saola_PNgh_variable_sites_nomultiallelics_noindels_notransitions_6dp_3het"
+rohfile: "/maps/projects/popgen/people/lpq293/saola/analyses/roh/plink/results/roh/roh_min1000kb_den100_win100_het1.hom"
+
+gff: "/maps/projects/popgen/people/lpq293/saola/analyses/annotate/gff/saolaRefN_genes.gff.gz"
+fai: "/maps/projects/popgen/people/lpq293/saola/analyses/rohintersections_stuff/saolaref_scaff10Mb.fai"
+genomebed: "/maps/projects/popgen/people/lpq293/saola/genome_masks/v2/saola_ref/all/beds/saolaRefN_autosomal_10MBscaff.bed"
+
+samples:
+  - "9253"
+  - "9259"
+  - "9279"
+  - "P9"
+  - "dups1"
+  - "9176merged"
+  - "P13merged"
+  - "9264_2"
+
+
+groups:
+  "northern": "9253,9259,9279,dups1,9264_2"
+  "central": "P9,9176merged,P13merged"
+  "all": "9253,9259,9279,P9,dups1,9176merged,P13merged,9264_2"
+
+
+min_genotype_similarity: 0.95
+#min_overlap: 0.1
+
+n_shuffles: 1000
