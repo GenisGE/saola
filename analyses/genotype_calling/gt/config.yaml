@@ -1,0 +1,12 @@
+bcftools: /home/krishang/software/bcftools/bcftools-1.13/bin/bcftools
+call_parameters:
+  baq: partial # bcftools BAQ setting to use, "with", "without", or "partial" (recommended)
+  block_size: 5000000 # Block size for scatter/gather calling
+  bq: 25 # minimum base quality
+  mq: 30 # minimum mapping quality
+  size_cutoff: 100000 # Minimum size of contigs for calls
+plink: /usr/bin/plink
+python: /home/malthe/.local/bin/python3
+tmp_dir: /tmpSSD/malthe/a1kg/tmp
+results_dir: results
+rscript: /home/malthe/bin/Rscript

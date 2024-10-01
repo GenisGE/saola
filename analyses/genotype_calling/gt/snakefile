@@ -1,0 +1,118 @@
+###################################################################################################
+####################                          SETUP                            ####################
+###################################################################################################
+
+import csv
+import itertools as it
+import sys
+
+from collections import defaultdict
+from pathlib import Path
+
+
+configfile: "config.yaml"
+
+
+# Check that a run-specific config file with a TSV has been provided and read it
+if not "tsv" in config:
+    msg = (
+        "Please provide a 2-column no-header TSV file containing groupings (column 1) "
+        "and BAM paths (column 2)"
+    )
+    print(msg, file=sys.stderr)
+    sys.exit(1)
+
+
+BCFTOOLS = config["bcftools"]
+INGROUP = config["ingroup"]
+PLINK = config["plink"]
+PYTHON = config["python"]
+REF_NAME = config["ref"]["name"]
+RESULTS_DIR = Path(config["results_dir"]) / config["results_subdir"]
+RSCRIPT = config["rscript"]
+VCF_DIR = RESULTS_DIR / "vcf"
+PLINK_DIR = RESULTS_DIR / "plink"
+SFS_DIR = RESULTS_DIR / "sfs"
+TMP_DIR = Path(config["tmp_dir"])
+
+# Read input TSV
+GROUP_ASSIGNMENTS = list()
+BAMS = list()
+with open(config["tsv"]) as f:
+    reader = csv.reader(f, delimiter="\t", quotechar='"')
+    for group, bam in reader:
+        GROUP_ASSIGNMENTS.append(group)
+        BAMS.append(bam)
+GROUPS = set(GROUP_ASSIGNMENTS)
+OUTGROUPS = GROUPS.difference({INGROUP})
+
+
+wildcard_constraints:
+    group="|".join(GROUPS),
+    outgroup="|".join(OUTGROUPS),
+    suffixes="|(_[A-Za-z0-9-]+)+",
+
+
+include: "rules/input.smk"
+include: "rules/call.smk"
+include: "rules/index.smk"
+include: "rules/depth.smk"
+include: "rules/filter.smk"
+include: "rules/mask.smk"
+include: "rules/merge.smk"
+include: "rules/plink.smk"
+
+
+if config["populations"]:
+
+    include: "rules/sfs.smk"
+
+
+###################################################################################################
+####################                         RULES                             ####################
+###################################################################################################
+
+
+rule call_all_groups:
+    """ Call all groups defined in BCF separately """
+    input:
+        expand(f"{VCF_DIR}/{REF_NAME}_{{group}}.bcf.gz.csi", group=GROUPS),
+
+
+SITES_INPUT_STEM = f"{REF_NAME}_{INGROUP}_variable_nomultiallelics_noindels"
+
+
+rule input_for_sites_filters:
+    """ Create all files necessary for creating sites files """
+    input:
+        expand(f"{VCF_DIR}/{SITES_INPUT_STEM}.{{ext}}", ext=["bcf.gz.csi", "depth.pdf"]),
+        expand(f"{PLINK_DIR}/{SITES_INPUT_STEM}_maf5pct.{{ext}}", ext=["bed", "bim", "fam"]),
+
+
+OUTGROUPS_STR = "-".join(sorted(list(OUTGROUPS)))
+MERGED_OUTGROUPS_STEM = f"{REF_NAME}_{INGROUP}_variable_sites_merge{OUTGROUPS_STR}"
+
+
+rule merge_all_outgroups:
+    """ Create VCF with all merged outgroups """
+    input:
+        f"{VCF_DIR}/{MERGED_OUTGROUPS_STEM}.bcf.gz.csi",
+
+
+DSTATS_INPUT_STEM = MERGED_OUTGROUPS_STEM + "_nomultiallelics_noindels_10dp_2het"
+
+
+rule input_for_dstats:
+    """ Create VCF with all merged outgroups, diallelic SNPs and masked dep/het for D-stats """
+    input:
+        f"{VCF_DIR}/{DSTATS_INPUT_STEM}.bcf.gz.csi",
+        expand(f"{PLINK_DIR}/{DSTATS_INPUT_STEM}.{{ext}}", ext=["bed", "bim", "fam"]),
+
+
+IMPUTATION_INPUT_STEM = f"{REF_NAME}_{INGROUP}_variable_sites_nomultiallelics_noindels"
+
+
+rule input_for_imputation:
+    """ Create VCF with ingroup samples diallelic SNPs and sites filters for imputation """
+    input:
+        f"{VCF_DIR}/{IMPUTATION_INPUT_STEM}.bcf.gz.csi",

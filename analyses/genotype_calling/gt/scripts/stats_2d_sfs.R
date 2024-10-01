@@ -1,0 +1,26 @@
+#!/usr/bin/env Rscript
+
+source("scripts/plotting.R")
+source("scripts/sfs.R")
+
+options(scipen = 999)
+
+args <- commandArgs(trailingOnly = TRUE)
+sfs_path <- args[1]
+
+sfs <- sfs_path %>%
+    sfs_read_path %>%
+    sfs_normalise
+
+df <- tibble(
+    hudsons_fst = sfs_hudsons_fst(sfs),
+)
+
+df %>%
+    mutate(across(everything(), ~as.character(signif(., 5)))) %>%
+    format_tsv %>%
+    cat
+
+#stop() # For debugging
+#sfs_path <- "results/giraffe/sfs/RothschildsGiraffe_Reticulated.sfs"
+

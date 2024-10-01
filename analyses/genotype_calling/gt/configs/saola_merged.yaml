@@ -1,0 +1,10 @@
+ingroup: PNgh
+results_subdir: saola_merged
+ref:
+  name: Saola
+  fa: /jbod1/mikkel/projects/202103_saola/data/saolaRefN.fasta
+  fai: /jbod1/mikkel/projects/202103_saola/data/saolaRefN.fasta.fai
+sites: /home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.bed
+tsv: tsvs/saola_merged.tsv
+populations: tsvs/saola_populations.tsv
+tmp_dir: results/saola_merged/tmp

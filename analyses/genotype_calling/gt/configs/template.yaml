@@ -1,0 +1,10 @@
+ingroup: [Name of ingroup: refers to a key in the first column of TSV]
+results_subdir: [Subdirectory of results/ in which to output results]
+ref:
+  name: [Name of reference]
+  fa: [Path to reference]
+  fai: [Path to reference index]
+sites: [Path to sites file (optional)]
+tsv: [Path to input TSV]
+populations: [Path to populations TSV (optional)]
+tmp_dir: [Path to tmp directory]
