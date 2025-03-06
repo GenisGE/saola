@@ -1,0 +1,53 @@
+
+
+
+# -Xmx4g 
+OUTMAIN = config["outmain"]
+GATK = "java -Xmx4g -jar /kellyData/home/genis/software/gatk-4.1.7.0/gatk-package-4.1.7.0-local.jar"
+BCFTOOLS = "/usr/bin/bcftools"
+
+
+rule all:
+    input:
+        gVcf = expand(os.path.join(OUTMAIN, "cleaned_gvcf", "{s}.g.vcf.gz"),
+                s = config["samples"])
+
+
+
+
+rule call_haplotypecaller:
+    input:
+        bam = lambda wildcards: config["bams"][wildcards.s],
+    output:
+        gvcf = os.path.join(OUTMAIN, "gvcf", "{s}.g.vcf.gz")
+    params:
+        ref = config["ref"],
+    shell: """
+        {GATK}  HaplotypeCaller \
+            -R {params.ref} \
+            -I {input.bam} \
+            -O {output.gvcf} \
+            -ERC GVCF \
+            -GQB 1 -GQB 10 -GQB 20 -GQB 30 -GQB 40 -GQB 50 -GQB 99
+    """
+    
+
+
+
+rule clean_calls:
+    input:
+        gvcf = os.path.join(OUTMAIN, "gvcf", "{s}.g.vcf.gz")
+    output:
+        gvcf = os.path.join(OUTMAIN, "cleaned_gvcf", "{s}.g.vcf.gz")
+    shell: """
+    {GATK} SelectVariants \
+        -V {input.gvcf} \
+        -select-type SNP \
+        -O {output.gvcf}
+ #       {BCFTOOLS} view  \
+ #           --max-alleles 2 \
+ #           --output-type v {input.gvcf} | \
+            {BCFTOOLS} view --include 'STRLEN(REF)=1 & (STRLEN(ALT)=1 | ALT=".")' --output-type z --output {output.gvcf}
+           # {BCFTOOLS} view --include 'STRLEN(REF)=1 & (STRLEN(ALT)=1 | ALT=".")' --output-type v | \
+           # {BCFTOOLS} view --include "FORMAT/DP > 6 && FORMAT/DP < 100" --output-type z --output {output.gvcf}
+    """

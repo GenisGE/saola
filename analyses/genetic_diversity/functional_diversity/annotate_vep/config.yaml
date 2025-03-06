@@ -1,0 +1,13 @@
+
+bcf: /home/genis/saola/analyses/geno_calls/vcf/Saola_PNgh_sites_nomultiallelics_noindels.bcf.gz
+outmain: results
+outbig: /davidData/genis/saola/annotation/vcf
+
+snpeffgenome: saolaRefN
+gff: /home/genis/saola/analyses/annotate/gff/saolaRefN_genes_withexons.gff.gz
+ref: /davidData/genis/references/saola/saolaRefN.fasta
+chromfile: /home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+
+vcfanno_config_gerp: config_vcfanno_gerp.toml
+vcfanno_config_annotation: config_vcfanno_annotation.toml
+

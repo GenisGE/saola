@@ -1,0 +1,154 @@
+
+
+OUTMAIN=config["outmain"]
+
+
+BCFTOOLS = "/kellyData/home/genis/software/bcftools/bcftools"
+SNPEFF = "java -jar /kellyData/home/genis/software/snpEff/snpEff.jar"
+SNPEFF="java -jar /kellyData/home/genis/software/redo_snpeff/snpEff/snpEff.jar"
+PYTHON3="python3"
+VARIANTCOUNTER="scripts/count_variants_categories.py"
+
+
+
+rule all:
+    input:
+        tsv = os.path.join(OUTMAIN, "annotation_load", "variant_impact_counts.tsv")
+
+    
+rule index_bcf:
+    """ Index BCF """
+    input:
+        vcf="{path}.bcf.gz",
+    output:
+        csi="{path}.bcf.gz.csi",
+    threads: 4
+    shell:
+        """
+        {BCFTOOLS} index --threads {threads} {input.vcf}
+        """
+
+
+rule subsetinds_filtervariable:
+    input:
+        bcf = config["inbcf"]
+    output:
+        bcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable.bcf.gz")
+    params:
+        keep = ",".join(config["samples"])
+    threads: 10
+    shell: """
+        {BCFTOOLS} view --min-alleles 2 -s {params.keep} --threads {threads} {input.bcf} | \
+        {BCFTOOLS} view --threads {threads} --min-ac 1 -Ob -o {output.bcf}
+    """
+
+
+rule annotate_snpeff:
+    input:
+        bcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable.bcf.gz"),
+        csi = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable.bcf.gz.csi")
+    output:
+        bcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff.bcf.gz")
+    params:
+        genome = config["snpeff_args"]["genome"],
+        extra = config["snpeff_args"]["extra"]
+    shell: """
+        {BCFTOOLS} view -Ov {input.bcf} | \
+        {SNPEFF} ann {params.extra} {params.genome} | \
+        {BCFTOOLS} view -Ob -o {output.bcf}
+    """
+
+
+rule keep_annotated_only:
+    input:
+        bcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff.bcf.gz"),
+        csi = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff.bcf.gz.csi")
+    output:
+        bcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly.bcf.gz"),
+    params:
+        genome = config["snpeff_args"]["genome"],
+        extra = config["snpeff_args"]["extra"]
+    shell: """
+        {BCFTOOLS} view  -i "INFO/ANN != '.'" -Ob -o {output.bcf} {input.bcf}
+    """
+
+
+
+rule mask_low_depth:
+    """ Set low-depth genotypes as missing and recompute tags """
+    input:
+        vcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly.bcf.gz"),
+    output:
+        vcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly_dp10.bcf.gz"),
+    params:
+        dp=10
+    threads: 10
+    shell:
+        """
+            {BCFTOOLS} +setGT \
+                --output-type u \
+                --threads {threads} \
+                {input.vcf} \
+                -- \
+                --include "FMT/DP<{params.dp}" \
+                --target-gt q \
+                --new-gt . | \
+            {BCFTOOLS} +fill-tags \
+                --output-type b \
+                --threads {threads} \
+                -- \
+                --tags AN,AC,MAF \
+                > {output.vcf} 
+        """
+
+
+
+rule mask_het_allele_support:
+    """ Set heterozygous genotypes with low support as missing and recompute tags """
+    input:
+        vcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly_dp10.bcf.gz"),
+    output:
+        vcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly_dp10_het3.bcf.gz"),
+    params:
+        het=3
+    threads: 10
+    shell:
+        """
+            {BCFTOOLS} +setGT \
+                --output-type u \
+                --threads {threads} \
+                {input.vcf} \
+                -- \
+                --include "FMT/GT=='het' & (FMT/AD[*:0]<{params.het} | FMT/AD[*:1]<{params.het})" \
+                --target-gt q \
+                --new-gt . | \
+            {BCFTOOLS} +fill-tags \
+                --output-type b \
+                --threads {threads} \
+                -- \
+                --tags AN,AC,MAF \
+                > {output.vcf} 
+        """
+
+
+rule variable_after_mask:
+    input:
+        bcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly_dp10_het3.bcf.gz"),
+    output:
+        bcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly_dp10_het3_variable.bcf.gz"),
+    threads: 10
+    shell:
+        """
+            {BCFTOOLS} view --threads {threads} --min-ac 1 -Ob -o {output.bcf} {input.bcf}
+        """
+
+rule count_variant_categories:
+    input:
+        bcf = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly_dp10_het3_variable.bcf.gz"),
+        csi = os.path.join(OUTMAIN, "bcf", "Saola_PNgh_sites_nomultiallelics_noindels_goodsamples_variable_snpeff_annotatedonly_dp10_het3_variable.bcf.gz.csi"),
+    output:
+        tsv = os.path.join(OUTMAIN, "annotation_load", "variant_impact_counts.tsv")
+    shell: """
+    {PYTHON3} {VARIANTCOUNTER} {input.bcf} {output.tsv}
+"""
+

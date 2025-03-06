@@ -1,0 +1,27 @@
+
+
+outmain: "results_default"
+
+inbcf: "/davidData/data/malthe/africa/gt/results/saola_merged/vcf/Saola_PNgh_sites_nomultiallelics_noindels.bcf.gz"
+sites: "/kellyData/home/genis/saola/genome_masks/v2/saola_ref/all/beds/autosome_rep_het_dep_map.bed"
+chromlist: "/kellyData/home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list"
+
+samples:
+ - "dups1"
+ - "9176merged"
+ - "9264_2"
+
+
+snpeff_args:
+  genome: "saolaRefN"
+  extra: ""
+
+
+# -spliceSiteSize 4 -spliceRegionExonSize 5 -spliceRegionIntronMin 3 -spliceRegionIntronMax 17
+#-no-downstream no-upstream -no-intergenic -spliceSiteSize 2 
+  
+
+
+mindp: 10
+minhet: 3
+

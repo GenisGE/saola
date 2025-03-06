@@ -1,0 +1,81 @@
+
+outmain: "results"
+outbig: "/davidData/genis/saola/load"
+scriptsdir: "scripts"
+
+bcf: "/davidData/genis/saola/annotation/vcf/bcf/Saola_PNgh_sites_nomultiallelics_noindelsgerp_vep.bcf.gz"
+samplefile: "saola_samples.list"
+chromfile: "/home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list"
+
+ancestral: "/home/genis/saola/analyses/ancestral_state/results/ancestral_cow.fa.gz"
+mingerp: 0
+
+
+categories:
+ - "MODIFIER"
+ - "LOW"
+ - "MODERATE"
+ - "HIGH"
+
+
+subsets:
+ set1a:
+  samples: "9176merged,9264_2"
+  filters: "_10dp_3het"
+  populations:
+    Northern:
+      samplelist: "9264_2"
+      an: 2
+    Central:
+      samplelist: "9176merged"
+      an: 2
+ set1b:
+  samples: "9176merged,9264_2"
+  filters: "_6dp_3het"
+  populations:
+    Northern:
+      samplelist: "9264_2"
+      an: 2
+    Central:
+      samplelist: "9176merged"
+      an: 2
+ set2:
+  samples: "9253,9259,9279,P9,dups1,9176merged,P13merged,9264_2"
+  filters: "_notransitions_6dp_3het"
+  populations:
+    Northern:
+      samplelist: "9253,9259,9279,dups1,9264_2"
+      an: 10
+    Central:
+      samplelist: "P9,9176merged,P13merged"
+      an: 6
+ set2b:
+  samples: "9253,9259,9279,P9,dups1,9176merged,P13merged,9264_2"
+  filters: "_notransitions_10dp_3het"
+  populations:
+    Northern:
+      samplelist: "9253,9259,9279,dups1,9264_2"
+      an: 10
+    Central:
+      samplelist: "P9,9176merged,P13merged"
+      an: 6
+ set3a:
+  samples: "9176merged,9264_2,dups1"
+  filters: "_10dp_3het"
+  populations:
+    Northern:
+      samplelist: "9264_2,dups1"
+      an: 4
+    Central:
+      samplelist: "9176merged"
+      an: 2
+ set3b:
+  samples: "9176merged,9264_2,dups1"
+  filters: "_6dp_3het"
+  populations:
+    Northern:
+      samplelist: "9264_2,dups1"
+      an: 4
+    Central:
+      samplelist: "9176merged"
+      an: 2

@@ -1,0 +1,61 @@
+# "script" copied and modified from: https://github.com/broadinstitute/Zoonomia/blob/master/hetcalc.txt
+
+##############################################
+#####  remove non snp variants ########
+##### min q 15, apply depth filters  #########
+##############################################
+
+BCFTOOLS="/kellyData/home/genis/software/bcftools/bcftools"
+
+
+#### SAMPLE 1
+i=/kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/9176merged.g.vcf.gz
+
+
+# keep only SNPs and fixed positions
+o=`basename $i`".cleaned2.g.vcf.gz"
+$BCFTOOLS view --include 'STRLEN(REF)=1 & (STRLEN(ALT[0])=1 | ALT[0]="<NON_REF>")' $i | $BCFTOOLS view --include "FORMAT/DP > 6 & FORMAT/DP < 100" -Oz -o $o
+
+
+#i=$(ls -1 /kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/*.vcf.gz|sed -n -e "${SGE_TASK_ID}{s/\*//;p;q}")
+
+#i=/kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/9176merged.g.vcf.gz
+rm_scaffolds=/kellyData/home/genis/saola/genome_masks/v2/saola_ref/satc/satc_sexlinked_scaffs_remove.list
+### Filer positions by GQ>20 if heterozygous position, GQ>10 if reference homozygous.  
+zcat $o | awk -v miau="$o" 'NR==FNR{scaf[$1]=1;next}/^#/{next}scaf[$1]==1{next}$1!=chr{a=$2;chr=$1;next}$6>15{het+=1;next}{split($NF,z,":");if(z[3]>15)tot+=$2-a; a=$2}END{print miau,het,tot}' OFS="\t" $rm_scaffolds - > test_het3.txt
+
+
+
+
+#### SAMPLE 2
+i=/kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/9264_2.g.vcf.gz
+# keep only SNPs and fixed positions
+o=`basename $i`".cleaned2.g.vcf.gz"
+$BCFTOOLS view --include 'STRLEN(REF)=1 & (STRLEN(ALT[0])=1 | ALT[0]="<NON_REF>")' $i | $BCFTOOLS view --include "FORMAT/DP > 6 & FORMAT/DP < 100" -Oz -o $o
+
+
+
+#i=$(ls -1 /kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/*.vcf.gz|sed -n -e "${SGE_TASK_ID}{s/\*//;p;q}")
+
+#i=/kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/9176merged.g.vcf.gz
+rm_scaffolds=/kellyData/home/genis/saola/genome_masks/v2/saola_ref/satc/satc_sexlinked_scaffs_remove.list
+### Filer positions by GQ>20 if heterozygous position, GQ>10 if reference homozygous.  
+zcat $o | awk -v miau="$o" 'NR==FNR{scaf[$1]=1;next}/^#/{next}scaf[$1]==1{next}$1!=chr{a=$2;chr=$1;next}$6>15{het+=1;next}{split($NF,z,":");if(z[3]>15)tot+=$2-a; a=$2}END{print miau,het,tot}' OFS="\t" $rm_scaffolds - >> test_het3.txt
+
+
+
+#### SAMPLE 3
+i=/kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/dups1.g.vcf.gz
+
+# keep only SNPs and fixed positions
+o=`basename $i`".cleaned2.g.vcf.gz"
+$BCFTOOLS view --include 'STRLEN(REF)=1 & (STRLEN(ALT[0])=1 | ALT[0]="<NON_REF>")' $i | $BCFTOOLS view --include "FORMAT/DP > 6 & FORMAT/DP < 100" -Oz -o $o
+
+
+
+#i=$(ls -1 /kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/*.vcf.gz|sed -n -e "${SGE_TASK_ID}{s/\*//;p;q}")
+
+#i=/kellyData/home/genis/saola/revision/hets_aszoonomia/results/gvcf/9176merged.g.vcf.gz
+rm_scaffolds=/kellyData/home/genis/saola/genome_masks/v2/saola_ref/satc/satc_sexlinked_scaffs_remove.list
+### Filer positions by GQ>20 if heterozygous position, GQ>10 if reference homozygous.  
+zcat $o | awk -v miau="$o" 'NR==FNR{scaf[$1]=1;next}/^#/{next}scaf[$1]==1{next}$1!=chr{a=$2;chr=$1;next}$6>15{het+=1;next}{split($NF,z,":");if(z[3]>15)tot+=$2-a; a=$2}END{print miau,het,tot}' OFS="\t" $rm_scaffolds - >> test_het3.txt

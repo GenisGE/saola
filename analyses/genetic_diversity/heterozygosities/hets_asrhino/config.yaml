@@ -1,0 +1,17 @@
+
+outmain: "results_nositesfilters"
+
+samples:
+ "dups1": /kellyData/home/genis/saola/info/bams/saolaRefN/dups1.saolaRefN.bam
+ "9264_2": /jbod1/mikkel/projects/2103_saola.git/mapping_and_filtering/filtered_alignments/output.batch_2/9264_2.saolaRefN.bam
+ "9176merged": /kellyData/home/genis/saola/info/bams/saolaRefN/batch2/9176merged.saolaRefN.bam
+
+depths:
+ "dups1": 15.4114
+ "9264_2": 37.7561
+ "9176merged": 21.5315
+
+
+ref: /davidData/data/genis/references/saola/saolaRefN.fasta
+chromlist: /kellyData/home/genis/saola/genome_masks/saola_ref/all/beds/saolaRefN_autosomal.list
+notrans: 0

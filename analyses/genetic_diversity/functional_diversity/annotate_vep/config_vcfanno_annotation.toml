@@ -1,0 +1,5 @@
+[[annotation]]
+file="/davidData/genis/saola/annotation/vcf/annotation/Saola_PNgh_sites_nomultiallelics_noindels_VariantEffectPrediction.bed.gz"
+columns=[10,17]
+names=["consequence", "more"]
+ops=["self","self"]
