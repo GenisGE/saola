@@ -1,6 +1,6 @@
 # Scripts used for the paper
 
-## "Saola genomes reveal that genetic diversity preserved across subpopulations may be key for its survival"
+## "Genomes of critically endangered saola are shaped by population structure and purging"
 
 Folders in repository:
 
